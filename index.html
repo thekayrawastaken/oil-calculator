@@ -18,7 +18,11 @@
   header .stat{display:flex;flex-direction:column;font-size:12px;color:var(--muted)}
   header .stat b{font-size:14px;color:var(--ink)}
   header input{width:120px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
-  main{display:grid;grid-template-columns:280px 1fr 320px;gap:12px;padding:12px;align-items:start}
+  main{display:grid;grid-template-columns:minmax(220px,260px) minmax(0,1fr) minmax(260px,300px);gap:12px;padding:12px;align-items:start}
+  .panel{min-width:0}
+  #zones{min-width:0}
+  .slot.disabled-slot{opacity:.35;outline:1px dashed #c84a4a;background:repeating-linear-gradient(45deg,rgba(200,74,74,.08) 0 6px,transparent 6px 12px)}
+  .slot.disabled-slot .name, .slot.disabled-slot .rate{text-decoration:line-through;color:#bbb}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
   h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
   /* Zones */
@@ -351,7 +355,6 @@
         <button data-edit="m1778447627842" title="edit">✎</button>
       </div>
     </div></div>
-    <div class="legend" data-i18n="paletteLegend">Number = available. <b>+/−</b> to update owned. Drag chip → place in zone. Hover chip + <b>W/S</b>: reorder.</div>
   </div>
 
   <!-- CENTER: Zones -->
@@ -489,7 +492,7 @@
         <div class="tt-row"><span>Income:</span><b>0/s</b></div>
       </div>
     </div></div>
-    <div class="legend" style="margin-top:8px" data-i18n="zonesLegend">Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Double-click a slot: remove machine.</div>
+    <div class="legend" style="margin-top:8px" data-i18n="zonesLegend">Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Hover + <span class="kbd">X</span>: disable/enable slot. Double-click a slot: remove machine.</div>
   </div>
 
   <!-- RIGHT: Suggestions / calculator -->
@@ -563,7 +566,7 @@
   </div>
 </dialog>
 
-<script id="embeddedState">window.__EMBEDDED_STATE__ = {"zones":[{"mult":3,"disabled":false,"slots":[{"shape":"L","machine":"m1778447627842","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447614796","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447614796","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]}]},{"mult":5,"disabled":true,"slots":[{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"S","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]}]},{"mult":3,"disabled":false,"slots":[{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]}]},{"mult":2,"disabled":false,"slots":[{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]}]},{"mult":2,"disabled":false,"slots":[{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]}]},{"mult":2,"disabled":false,"slots":[{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]}]},{"mult":1,"disabled":false,"slots":[{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]}]},{"mult":1,"disabled":false,"slots":[{"shape":"L","machine":"m1778448911681","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448911681","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448911681","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448911681","split":false,"sub":[null,null]}]},{"mult":1,"disabled":false,"slots":[{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]}]},{"mult":1,"disabled":true,"slots":[{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"S","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]}]},{"mult":1,"disabled":false,"slots":[{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]}]},{"mult":1,"disabled":true,"slots":[{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"S","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]}]}],"catalog":[{"id":"m1778447750139","name":"Mini Ruby","cost":0,"rate":67,"size":"S"},{"id":"m1778447701933","name":"Mini Diamond","cost":0,"rate":100,"size":"S"},{"id":"m1778447765648","name":"Quantum","cost":0,"rate":175,"size":"M"},{"id":"m1778449160005","name":"Crystal","cost":9000000000,"rate":1500,"size":"L"},{"id":"m1778448934122","name":"Diamond","cost":27500000000,"rate":2750,"size":"L"},{"id":"m1778448911681","name":"Ruby","cost":85500000000,"rate":4500,"size":"L"},{"id":"m1778447536933","name":"Fusion","cost":137500000000,"rate":7500,"size":"L"},{"id":"m1778445752408","name":"Uranium","cost":437500000000,"rate":12500,"size":"L"},{"id":"m1778447554327","name":"Radium","cost":810000000000,"rate":18000,"size":"L"},{"id":"m1778447614796","name":"Palladium","cost":1200000000000,"rate":25000,"size":"L"},{"id":"m1778447627842","name":"Thorium","cost":2100000000000,"rate":37500,"size":"L"}],"inventory":{"m1778447536933":16,"m1778445752408":5,"m1778447554327":0,"m1778448911681":4,"m1778448934122":7,"m1778447614796":2,"m1778447627842":1,"m1778447765648":36,"m1778447750139":54},"money":250000000000,"gas":0,"sellPrice":15,"bonus":4.75,"tacoGas":0,"muted":false,"lang":"en"};</script>
+<script id="embeddedState">window.__EMBEDDED_STATE__ = null;</script>
 <script>
 "use strict";
 
@@ -579,7 +582,7 @@ const I18N = {
     // Panels
     inventory:'Inventory', addEditMachine:'+ Add/Edit Machine Type',
     paletteLegend:'Number = available. <b>+/−</b> to update owned. Drag chip → place in zone. ✎ to edit. Hover chip + <b>W/S</b>: reorder.',
-    zonesLegend:'Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Double-click a slot: remove machine.',
+    zonesLegend:'Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Hover + <span class="kbd">X</span>: disable/enable slot. Double-click a slot: remove machine.',
     investmentTitle:'Investment Suggestion',
     budgetPh:'Budget (e.g. 1T)', invest:'Suggest', autoPlace:'Auto-Place',
     noSuggestion:'No suggestion yet.',
@@ -648,7 +651,7 @@ const I18N = {
     sortCheap:'En Ucuz', sortExpensive:'En Pahalı', onlyAvail:'Sadece mevcut',
     inventory:'Envanter', addEditMachine:'+ Makine Tipi Ekle/Düzenle',
     paletteLegend:'Sayı = kullanılabilir adet. <b>+/−</b> ile sahip olduğunu güncelle. Çipi sürükle → bölgeye yerleştir. ✎ ile makineyi düzenle. Çipin üstünde <b>W/S</b>: sırayı değiştir.',
-    zonesLegend:'Hover + <span class="kbd">C</span>: 2x1 slotu 2 adet 1x1\'e böler / birleştirir. Slota çift tıkla: makineyi sök.',
+    zonesLegend:'Hover + <span class="kbd">C</span>: 2x1 slotu 2 adet 1x1\'e böler / birleştirir. Hover + <span class="kbd">X</span>: slotu devre dışı bırak/aç. Slota çift tıkla: makineyi sök.',
     investmentTitle:'Yatırım Önerisi',
     budgetPh:'Bütçe (örn 1T)', invest:'Yatırım Öner', autoPlace:'Otomatik Yerleştir',
     noSuggestion:'Henüz öneri yok.',
@@ -725,12 +728,12 @@ const SLOT_SHAPES = ['L','M','L','M','S','M','L','M','L'];
 const STORAGE_KEY = 'idle-optimizer-v1';
 
 const DEFAULT_MACHINES = [
-  {id:'t1', name:'T1', cost:9e9,    rate:1500,  size:'S'},
-  {id:'t2', name:'T2', cost:27.5e9, rate:2750,  size:'M'},
-  {id:'t3', name:'T3', cost:85.5e9, rate:4500,  size:'M'},
-  {id:'t4', name:'T4', cost:187.5e9,rate:7500,  size:'L'},
-  {id:'t5', name:'T5', cost:437.5e9,rate:12500, size:'L'},
-  {id:'t6', name:'T6', cost:1.2e12, rate:25000, size:'L'},
+  {id:'plasma',     name:'Plasma Drill',      cost:4500000,    rate:50,  size:'L'},
+  {id:'hugelong',   name:'Huge Long Drill',   cost:40000000,   rate:220, size:'L'},
+  {id:'megaplasma', name:'Mega Plasma Drill', cost:95000000,   rate:275, size:'L'},
+  {id:'multi',      name:'Multi Drill',       cost:280000000,  rate:350, size:'L'},
+  {id:'lava',       name:'Lava Drill',        cost:900000000,  rate:600, size:'L'},
+  {id:'iceplasma',  name:'Ice Plasma Drill',  cost:2400000000, rate:800, size:'L'},
 ];
 
 // ============ STATE ============
@@ -739,7 +742,7 @@ let state = loadState() || makeFreshState();
 function makeFreshState(){
   const zones = ZONE_MULTS.map(m => ({
     mult: m, disabled: false,
-    slots: SLOT_SHAPES.map(shape => ({shape, machine:null, split:false, sub:[null,null]}))
+    slots: SLOT_SHAPES.map(shape => ({shape, machine:null, split:false, sub:[null,null], disabled:false, subDisabled:[false,false]}))
   }));
   return {
     zones,
@@ -794,6 +797,14 @@ function loadState(){
     if(s.lang !== 'tr' && s.lang !== 'en') s.lang = 'en';
     if(s.invSort !== 'cheap' && s.invSort !== 'expensive') s.invSort = null;
     if(typeof s.invOnlyAvailable !== 'boolean') s.invOnlyAvailable = false;
+    // Migrate slots: ensure disabled/subDisabled fields exist on every slot
+    for(const zone of s.zones){
+      if(!zone.slots) continue;
+      for(const slot of zone.slots){
+        if(typeof slot.disabled !== 'boolean') slot.disabled = false;
+        if(!Array.isArray(slot.subDisabled)) slot.subDisabled = [false,false];
+      }
+    }
     // Eski kayıtlardaki sıralama farklı olabilir → bölge mult'larını mevcut layout'a göre güncelle.
     for(let i=0;i<ZONE_MULTS.length && i<s.zones.length;i++){
       s.zones[i].mult = ZONE_MULTS[i];
@@ -884,10 +895,13 @@ function* iterSlots(opts){
     for(let s=0; s<zone.slots.length; s++){
       const slot = zone.slots[s];
       if(slot.shape === 'M' && slot.split){
+        if(skipDisabled && slot.disabled) continue;
         for(let i=0;i<2;i++){
+          if(skipDisabled && slot.subDisabled && slot.subDisabled[i]) continue;
           yield {zoneIdx:z, slotIdx:s, subIdx:i, shape:'S', machine:slot.sub[i]};
         }
       } else {
+        if(skipDisabled && slot.disabled) continue;
         yield {zoneIdx:z, slotIdx:s, subIdx:-1, shape:slot.shape, machine:slot.machine};
       }
     }
@@ -1081,7 +1095,10 @@ function renderSlot(z, s, slot){
         sub.classList.add('empty');
         sub.innerHTML = '<div class="shape-label">1×1</div>';
       }
+      if(slot.subDisabled && slot.subDisabled[i]) sub.classList.add('disabled-slot');
       attachDnD(sub, z, s, i, 'S');
+      sub.addEventListener('mouseenter', (e) => { e.stopPropagation(); hoveredSlot = {z,s,sub:i,shape:'S'}; hoveredM = null; });
+      sub.addEventListener('mouseleave', () => { if(hoveredSlot && hoveredSlot.z===z && hoveredSlot.s===s && hoveredSlot.sub===i) hoveredSlot = null; });
       div.appendChild(sub);
     }
   } else {
@@ -1094,11 +1111,18 @@ function renderSlot(z, s, slot){
       const lbl = slot.shape === 'L' ? '2×2' : slot.shape === 'M' ? '2×1' : '1×1';
       div.innerHTML = `<div class="shape-label">${lbl}</div>`;
     }
+    if(slot.disabled) div.classList.add('disabled-slot');
     attachDnD(div, z, s, -1, slot.shape);
   }
-  // Hover for C key (only meaningful on M)
-  div.addEventListener('mouseenter', () => { hoveredM = (slot.shape === 'M') ? {z,s} : null; });
-  div.addEventListener('mouseleave', () => { if(hoveredM && hoveredM.z===z && hoveredM.s===s) hoveredM = null; });
+  // Hover tracking — hoveredSlot for X key (any slot), hoveredM for C key (M only)
+  div.addEventListener('mouseenter', () => {
+    if(!(slot.shape === 'M' && slot.split)) hoveredSlot = {z,s,sub:-1,shape:slot.shape};
+    hoveredM = (slot.shape === 'M' && !slot.split) ? {z,s} : (slot.shape === 'M' && slot.split ? {z,s} : null);
+  });
+  div.addEventListener('mouseleave', () => {
+    if(hoveredM && hoveredM.z===z && hoveredM.s===s) hoveredM = null;
+    if(hoveredSlot && hoveredSlot.z===z && hoveredSlot.s===s && hoveredSlot.sub===-1) hoveredSlot = null;
+  });
   // Double-click to remove
   div.addEventListener('dblclick', e => {
     e.preventDefault();
@@ -1208,10 +1232,24 @@ function handleDrop(data, target, el){
 // ============ HOVER KEYS ============
 let hoveredM = null;
 let hoveredChip = null;
+let hoveredSlot = null;
 window.addEventListener('keydown', e => {
   const tag = (e.target && e.target.tagName) || '';
   if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
   const k = e.key.toLowerCase();
+  // X: disable/enable hovered slot (or sub-slot)
+  if(k === 'x' && hoveredSlot){
+    const slot = state.zones[hoveredSlot.z].slots[hoveredSlot.s];
+    if(hoveredSlot.sub >= 0){
+      if(!slot.subDisabled) slot.subDisabled = [false,false];
+      slot.subDisabled[hoveredSlot.sub] = !slot.subDisabled[hoveredSlot.sub];
+    } else {
+      slot.disabled = !slot.disabled;
+    }
+    clearSuggestions();
+    render();
+    return;
+  }
   // C: split/merge M slot
   if(k === 'c' && hoveredM){
     const slot = state.zones[hoveredM.z].slots[hoveredM.s];
@@ -1291,6 +1329,13 @@ document.getElementById('loadSetupFile').addEventListener('change', (e) => {
         flashSuggestion(T('setupInvalid')); return;
       }
       state.zones = data.zones;
+      for(const zone of state.zones){
+        if(!zone.slots) continue;
+        for(const slot of zone.slots){
+          if(typeof slot.disabled !== 'boolean') slot.disabled = false;
+          if(!Array.isArray(slot.subDisabled)) slot.subDisabled = [false,false];
+        }
+      }
       state.inventory = data.inventory || {};
       if(typeof data.bonus === 'number') state.bonus = data.bonus;
       if(typeof data.sellPrice === 'number') state.sellPrice = data.sellPrice;
