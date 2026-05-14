@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<title>Oil Calculator</title>
+<style>
+  :root {
+    --bg:#15151c; --panel:#1e1e28; --panel2:#262633; --ink:#e8e6f0; --muted:#8a87a0;
+    --L:#cdc5f2; --L-ink:#2a1f6b;
+    --M:#c9e4cd; --M-ink:#1f4d2a;
+    --S:#f5d9b3; --S-ink:#7a4a18;
+    --hi:#ffcb47; --bad:#e25555; --ok:#3acb7a;
+    --line:#34344a;
+    --chip-bg:#2c2c3a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.4 system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+  header{display:flex;flex-wrap:wrap;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);align-items:center}
+  header .stat{display:flex;flex-direction:column;font-size:12px;color:var(--muted)}
+  header .stat b{font-size:14px;color:var(--ink)}
+  header input{width:120px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
+  main{display:grid;grid-template-columns:220px 1fr 320px;gap:12px;padding:12px;align-items:start}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
+  h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  /* Zones */
+  #zones{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .zone{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;position:relative}
+  .zone.off{opacity:.4}
+  .zone .mult{position:absolute;top:6px;right:8px;background:var(--hi);color:#1a1a22;font-weight:700;font-size:11px;padding:2px 6px;border-radius:10px}
+  .zone .toggle{position:absolute;top:4px;left:6px;width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--ok);color:#0a3a1a;font-size:11px;font-weight:700;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center}
+  .zone.off .toggle{background:#444;color:#888}
+  .zone .income{font-size:11px;color:var(--muted);margin-bottom:6px;padding-left:24px}
+  .zone-grid{display:grid;grid-template-columns:2fr 1fr 2fr;grid-template-rows:2fr 1fr 2fr;gap:4px;aspect-ratio:1}
+  .slot{border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;text-align:center;cursor:pointer;user-select:none;border:2px solid transparent;position:relative;overflow:hidden;padding:2px}
+  .slot.L{background:var(--L);color:var(--L-ink)}
+  .slot.M{background:var(--M);color:var(--M-ink)}
+  .slot.S{background:var(--S);color:var(--S-ink)}
+  .slot.empty{opacity:.55}
+  .slot.empty.hi{border-color:var(--hi);opacity:1}
+  .slot.dragover{border-color:var(--ok)}
+  .slot.bad{border-color:var(--bad);animation:flash .4s}
+  .slot.best{border-color:var(--hi);box-shadow:0 0 0 3px rgba(255,216,77,.4)}
+  @keyframes flash{0%,100%{background-color:#ffb3b3}50%{}}
+  .slot .name{font-weight:700;font-size:11px}
+  .slot .rate{font-size:9px;opacity:.75}
+  .slot .shape-label{font-weight:700;font-size:11px}
+  .slot.split{padding:0;background:transparent;display:flex;gap:2px;align-items:center;justify-content:center}
+  .slot.split.vertical{flex-direction:column}
+  .slot.split.horizontal{flex-direction:row}
+  .slot.split.horizontal .sub{height:100%;aspect-ratio:1}
+  .slot.split.vertical   .sub{width:100%;aspect-ratio:1}
+  .slot.split .sub{background:var(--S);color:var(--S-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:4px}
+  .slot.split .sub.empty{opacity:.55}
+  .slot.split .sub.dragover{outline:2px solid var(--ok)}
+  .slot.split .sub.best{outline:2px solid var(--hi)}
+  /* Palette */
+  .chip{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:6px 8px;border-radius:6px;margin-bottom:6px;cursor:pointer;border:1px solid var(--line);background:var(--chip-bg)}
+  .chip[draggable=true]{cursor:grab}
+  .chip[draggable=true]:active{cursor:grabbing}
+  .chip .swatch{width:10px;height:10px;border-radius:2px;margin-right:6px;flex:0 0 auto}
+  .chip .swatch.L{background:var(--L)}
+  .chip .swatch.M{background:var(--M)}
+  .chip .swatch.S{background:var(--S)}
+  .chip.disabled{opacity:.55}
+  .chip .meta{font-size:10px;color:var(--muted)}
+  .chip .qty{background:var(--hi);color:#1a1a22;font-weight:700;font-size:11px;padding:1px 6px;border-radius:10px;margin-right:4px}
+  .chip .qty.zero{background:#444;color:#888}
+  .chip .actions{display:flex;gap:2px}
+  .chip button{border:none;background:rgba(255,255,255,.08);color:var(--ink);border-radius:3px;padding:2px 5px;font-size:10px;cursor:pointer}
+  .chip button:hover{background:rgba(255,255,255,.15)}
+  /* Right panel */
+  button.primary{background:var(--hi);color:#1a1a22;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;font:inherit;font-weight:600;width:100%;margin-bottom:6px}
+  button.primary:hover{filter:brightness(1.1)}
+  button.danger{background:var(--bad);color:#fff;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;font:inherit;font-weight:600;width:100%;margin-bottom:6px}
+  button.danger:hover{filter:brightness(1.1)}
+  button.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:6px 10px;border-radius:6px;cursor:pointer;font:inherit}
+  button.ghost:hover{background:#33334a}
+  button.primary, button.danger, button.ghost, .chip button, .zone .toggle, .inv-row button {
+    transition: transform 80ms ease, filter 120ms ease, background 120ms ease;
+  }
+  button.primary:active, button.danger:active, button.ghost:active,
+  .chip button:active, .zone .toggle:active, .inv-row button:active { transform: scale(0.96); }
+  @keyframes pop { 0%{transform:scale(.7)} 60%{transform:scale(1.08)} 100%{transform:scale(1)} }
+  .slot.pop, .slot.split .sub.pop { animation: pop 180ms ease-out; }
+  .chip { transition: opacity 120ms ease, transform 120ms ease, box-shadow 120ms ease, background 120ms ease; }
+  .chip[draggable="true"]:hover { transform: translateY(-1px); box-shadow:0 2px 8px rgba(0,0,0,.25); }
+  .chip.dragging { opacity:.45; }
+  .row{display:flex;gap:6px;margin-bottom:8px}
+  .row input,.row select{flex:1;padding:6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
+  .suggest{background:#3a341a;border:1px solid var(--hi);border-radius:6px;padding:8px;margin-top:8px;font-size:13px;color:#ffe9a8}
+  .suggest.empty{background:var(--panel2);border-color:var(--line);color:var(--muted)}
+  .moves{max-height:200px;overflow:auto;font-size:12px}
+  .moves .mv{padding:4px 6px;border-bottom:1px solid var(--line)}
+  dialog{border:none;border-radius:10px;padding:16px;min-width:360px;box-shadow:0 8px 40px rgba(0,0,0,.6);background:var(--panel);color:var(--ink)}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  .form-row{display:flex;flex-direction:column;margin-bottom:8px}
+  .form-row label{font-size:12px;color:var(--muted);margin-bottom:2px}
+  .form-row input,.form-row select{padding:6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
+  .inv-row{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+  .inv-row .name{display:flex;align-items:center;gap:6px}
+  .inv-row .placed{font-size:11px;color:var(--muted)}
+  .inv-row input{width:60px;padding:4px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:4px;text-align:center;font:inherit}
+  .inv-row button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:2px 8px;border-radius:4px;cursor:pointer}
+  .size-radios{display:flex;gap:10px}
+  .legend{font-size:11px;color:var(--muted);margin-top:4px}
+  .kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:0 4px;font-family:monospace;font-size:11px;color:var(--ink)}
+  .panel h3{color:var(--muted)}
+  /* Afford card */
+  .afford-card{background:linear-gradient(135deg,#23233b,#1d1d28);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:6px;position:relative;overflow:hidden}
+  .afford-card .big{font-size:24px;font-weight:700;color:var(--hi);line-height:1.1;display:flex;align-items:baseline;gap:6px}
+  .afford-card .big .unit{font-size:13px;color:var(--muted);font-weight:500}
+  .afford-card .sub{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .afford-card.ready{background:linear-gradient(135deg,#1f3a28,#1d2820);border-color:#3acb7a}
+  .afford-card.ready .big{color:#5ee08a}
+  .afford-card .badge{display:inline-block;background:rgba(58,203,122,.15);color:#5ee08a;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px;font-weight:600}
+  /* Comparator */
+  .cmp-row{display:grid;grid-template-columns:1fr 60px auto;gap:6px;margin-bottom:6px;align-items:center}
+  .cmp-row select,.cmp-row input{padding:6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
+  .cmp-row .rm{background:var(--panel2);border:1px solid var(--line);color:var(--bad);padding:4px 8px;border-radius:4px;cursor:pointer;font-size:14px;line-height:1}
+  .cmp-row .rm:hover{background:#3a2424}
+  #cmpAddRow{font-size:12px;padding:4px 8px;margin-bottom:6px}
+  .cmp-result-row{padding:8px;border:1px solid var(--line);border-radius:6px;margin-top:6px;background:var(--panel2);font-size:12px;line-height:1.4}
+  .cmp-result-row .name{font-weight:700;font-size:13px}
+  .cmp-result-row .stats{color:var(--muted);font-size:11px;margin-top:3px}
+  .cmp-result-row.winner{border-color:var(--hi);background:linear-gradient(135deg,#3a341a,#2c2820);box-shadow:0 0 0 1px var(--hi),0 0 12px rgba(255,203,71,.2);animation:winner-pulse 1.2s ease-out 2}
+  .cmp-result-row.winner .name{color:var(--hi)}
+  .cmp-result-row .warn{color:var(--bad);font-size:11px;margin-top:2px}
+  @keyframes winner-pulse{0%{transform:scale(1)}30%{transform:scale(1.02)}100%{transform:scale(1)}}
+  /* Particles */
+  .particle{position:fixed;pointer-events:none;width:8px;height:8px;border-radius:50%;z-index:9999;animation:burst 500ms ease-out forwards}
+  .particle.L{background:var(--L)}.particle.M{background:var(--M)}.particle.S{background:var(--S)}
+  @keyframes burst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+  /* Ripple */
+  button{position:relative;overflow:hidden}
+  .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);pointer-events:none;transform:scale(0);animation:ripple 500ms ease-out forwards}
+  @keyframes ripple{to{transform:scale(2.6);opacity:0}}
+  /* Income float */
+  .float-gain{position:fixed;pointer-events:none;color:#5ee08a;font-weight:700;font-size:13px;z-index:9999;text-shadow:0 0 4px rgba(0,0,0,.7);animation:float-up 900ms ease-out forwards}
+  @keyframes float-up{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-32px);opacity:0}}
+  /* Mute button */
+  #btnMute{background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1}
+  #btnMute:hover{background:#33334a}
+  /* Hover-grow on dragover */
+  .slot.dragover, .slot.split .sub.dragover{transform:scale(1.04)}
+  .slot, .slot.split .sub{transition:transform 120ms ease, border-color 120ms ease}
+  /* Wait strategy banner */
+  .mv.wait-banner{background:rgba(58,167,203,.12);border-left:3px solid #3aa7cb;color:#a8d8e8;padding:6px 8px}
+  .mv.strategy-head{background:rgba(255,203,71,.1);border-left:3px solid var(--hi);font-weight:600}
+  /* Zone tooltip */
+  .zone-tooltip{position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:4px;background:var(--panel);border:1px solid var(--hi);border-radius:6px;padding:8px;font-size:11px;box-shadow:0 6px 20px rgba(0,0,0,.6);pointer-events:none;opacity:0;transform:translateY(-4px);transition:opacity 160ms,transform 160ms;line-height:1.5;color:var(--ink)}
+  .zone:hover .zone-tooltip{opacity:1;transform:translateY(0)}
+  .zone-tooltip .tt-title{font-weight:700;color:var(--hi);font-size:12px;margin-bottom:4px}
+  .zone-tooltip .tt-row{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}
+  .zone-tooltip .tt-row b{color:var(--ink);font-weight:600}
+  .zone-tooltip .tt-disabled{display:inline-block;background:rgba(226,85,85,.2);color:var(--bad);font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:6px}
+  .zone{position:relative}
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .particle,.ripple,.float-gain,.cmp-result-row.winner{animation:none!important}
+    .slot,.slot.split .sub{transition:none}
+    .slot.pop,.slot.split .sub.pop{animation:none}
+    .zone-tooltip{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="stat"><span data-i18n="money">Money</span><b><input id="money" type="text" value="0"></b></div>
+  <div class="stat"><span data-i18n="gas">Gas Stock</span><b><input id="gas" type="text" value="0"></b></div>
+  <div class="stat"><span data-i18n="sellPrice">Sell price (×)</span><b><input id="sellPrice" type="number" step="0.01" value="15"></b></div>
+  <div class="stat"><span data-i18n="bonus">Bonus (e.g. 4.75 = 475%)</span><b><input id="bonus" type="number" step="0.01" value="4.75"></b></div>
+  <div class="stat"><span data-i18n="totalRate">Total production/s</span><b id="totalRate" data-raw="709522">709.52K/s</b></div>
+  <div class="stat"><span data-i18n="totalIncome">Total money/s</span><b id="totalIncome" data-raw="61196272.5">61.20M/s</b></div>
+  <div class="stat"><span data-i18n="tacoValue">Taco value</span><b id="tacoValue" data-raw="18362429.36">18.36M gas</b></div>
+  <div style="flex:1"></div>
+  <button id="btnLang" title="Language / Dil">🇺🇸</button>
+  <button id="btnMute" title="Mute/unmute">🔊</button>
+  <button class="ghost" id="btnSave" data-i18n="save">Save</button>
+  <button class="ghost" id="btnShare" data-i18n="share" title="Download a copy of this HTML with your current data baked in, so you can send it to others">Share<span class="ripple" style="height: 81.9763px; width: 81.9763px; left: 6.11499px; top: -31.0476px;"></span></button>
+</header>
+
+<main>
+  <!-- LEFT: Machine palette -->
+  <div class="panel">
+    <h3 data-i18n="inventory">Inventory</h3>
+    <div id="palette"><div class="chip" draggable="true" data-machine-id="m1778447750139">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:grab">
+        <span class="swatch S"></span>
+        <div style="min-width:0">
+          <div><b>Mini Ruby</b> <span class="meta">1x1</span> · <span class="meta">placed 9/54</span></div>
+          <div class="meta">0 → 67/s</div>
+        </div>
+      </div>
+      <span class="qty " title="available">45</span>
+      <div class="actions">
+        <button data-dec="m1778447750139" title="−1 owned">−</button>
+        <button data-inc="m1778447750139" title="+1 owned">+</button>
+        <button data-edit="m1778447750139" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778447701933">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch S"></span>
+        <div style="min-width:0">
+          <div><b>Mini Diamond</b> <span class="meta">1x1</span> · <span class="meta">placed 0/0</span></div>
+          <div class="meta">0 → 100/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778447701933" title="−1 owned">−</button>
+        <button data-inc="m1778447701933" title="+1 owned">+</button>
+        <button data-edit="m1778447701933" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778447765648">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch M"></span>
+        <div style="min-width:0">
+          <div><b>Quantum</b> <span class="meta">2x1</span> · <span class="meta">placed 36/36</span></div>
+          <div class="meta">0 → 175/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778447765648" title="−1 owned">−</button>
+        <button data-inc="m1778447765648" title="+1 owned">+</button>
+        <button data-edit="m1778447765648" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778449160005">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch L"></span>
+        <div style="min-width:0">
+          <div><b>Crystal</b> <span class="meta">2x2</span> · <span class="meta">placed 0/0</span></div>
+          <div class="meta">9.00B → 1.50K/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778449160005" title="−1 owned">−</button>
+        <button data-inc="m1778449160005" title="+1 owned">+</button>
+        <button data-edit="m1778449160005" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778448934122">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch L"></span>
+        <div style="min-width:0">
+          <div><b>Diamond</b> <span class="meta">2x2</span> · <span class="meta">placed 7/7</span></div>
+          <div class="meta">27.50B → 2.75K/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778448934122" title="−1 owned">−</button>
+        <button data-inc="m1778448934122" title="+1 owned">+</button>
+        <button data-edit="m1778448934122" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778448911681">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch L"></span>
+        <div style="min-width:0">
+          <div><b>Ruby</b> <span class="meta">2x2</span> · <span class="meta">placed 4/4</span></div>
+          <div class="meta">85.50B → 4.50K/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778448911681" title="−1 owned">−</button>
+        <button data-inc="m1778448911681" title="+1 owned">+</button>
+        <button data-edit="m1778448911681" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778447536933">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch L"></span>
+        <div style="min-width:0">
+          <div><b>Fusion</b> <span class="meta">2x2</span> · <span class="meta">placed 16/16</span></div>
+          <div class="meta">137.50B → 7.50K/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778447536933" title="−1 owned">−</button>
+        <button data-inc="m1778447536933" title="+1 owned">+</button>
+        <button data-edit="m1778447536933" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778445752408">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch L"></span>
+        <div style="min-width:0">
+          <div><b>Uranium</b> <span class="meta">2x2</span> · <span class="meta">placed 5/5</span></div>
+          <div class="meta">437.50B → 12.50K/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778445752408" title="−1 owned">−</button>
+        <button data-inc="m1778445752408" title="+1 owned">+</button>
+        <button data-edit="m1778445752408" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778447554327">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch L"></span>
+        <div style="min-width:0">
+          <div><b>Radium</b> <span class="meta">2x2</span> · <span class="meta">placed 0/0</span></div>
+          <div class="meta">810.00B → 18.00K/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778447554327" title="−1 owned">−</button>
+        <button data-inc="m1778447554327" title="+1 owned">+</button>
+        <button data-edit="m1778447554327" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778447614796">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch L"></span>
+        <div style="min-width:0">
+          <div><b>Palladium</b> <span class="meta">2x2</span> · <span class="meta">placed 2/2</span></div>
+          <div class="meta">1.20T → 25.00K/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778447614796" title="−1 owned">−</button>
+        <button data-inc="m1778447614796" title="+1 owned">+</button>
+        <button data-edit="m1778447614796" title="edit">✎</button>
+      </div>
+    </div><div class="chip disabled" draggable="false" data-machine-id="m1778447627842">
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:default">
+        <span class="swatch L"></span>
+        <div style="min-width:0">
+          <div><b>Thorium</b> <span class="meta">2x2</span> · <span class="meta">placed 1/1</span></div>
+          <div class="meta">2.10T → 37.50K/s</div>
+        </div>
+      </div>
+      <span class="qty zero" title="available">0</span>
+      <div class="actions">
+        <button data-dec="m1778447627842" title="−1 owned">−</button>
+        <button data-inc="m1778447627842" title="+1 owned">+</button>
+        <button data-edit="m1778447627842" title="edit">✎</button>
+      </div>
+    </div></div>
+    <button class="ghost" id="btnAddMachine" style="width:100%" data-i18n="addEditMachine">+ Add/Edit Machine Type</button>
+    <div class="legend" data-i18n="paletteLegend">Number = available. <b>+/−</b> to update owned. Drag chip → place in zone. ✎ to edit. Hover chip + <b>W/S</b>: reorder.</div>
+  </div>
+
+  <!-- CENTER: Zones -->
+  <div>
+    <div id="zones"><div class="zone">
+      <button class="toggle" data-toggle="0" title="Disable">✓</button>
+      <div class="mult">3×</div>
+      <div class="income">Zone 1 · 302.30K gas/s</div>
+      <div class="zone-grid"><div data-zone="0" data-slot="0" class="slot L" draggable="true"><div class="name">Thorium</div><div class="rate">112.50K gas/s</div></div><div data-zone="0" data-slot="1" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">525 gas/s</div></div><div data-zone="0" data-slot="2" class="slot L" draggable="true"><div class="name">Palladium</div><div class="rate">75.00K gas/s</div></div><div data-zone="0" data-slot="3" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">525 gas/s</div></div><div data-zone="0" data-slot="4" class="slot S" draggable="true"><div class="name">Mini Ruby</div><div class="rate">201 gas/s</div></div><div data-zone="0" data-slot="5" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">525 gas/s</div></div><div data-zone="0" data-slot="6" class="slot L" draggable="true"><div class="name">Palladium</div><div class="rate">75.00K gas/s</div></div><div data-zone="0" data-slot="7" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">525 gas/s</div></div><div data-zone="0" data-slot="8" class="slot L" draggable="true"><div class="name">Uranium</div><div class="rate">37.50K gas/s</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 1 · 3×</div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>—</b></div>
+        <div class="tt-row"><span>Income:</span><b>26.07M/s</b></div>
+      </div>
+    </div><div class="zone off">
+      <button class="toggle" data-toggle="1" title="Enable">✕</button>
+      <div class="mult">5×</div>
+      <div class="income">Zone 2 · off</div>
+      <div class="zone-grid"><div data-zone="1" data-slot="0" class="slot L empty"><div class="shape-label">2×2</div></div><div data-zone="1" data-slot="1" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="1" data-slot="2" class="slot L empty"><div class="shape-label">2×2</div></div><div data-zone="1" data-slot="3" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="1" data-slot="4" class="slot S empty"><div class="shape-label">1×1</div></div><div data-zone="1" data-slot="5" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="1" data-slot="6" class="slot L empty"><div class="shape-label">2×2</div></div><div data-zone="1" data-slot="7" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="1" data-slot="8" class="slot L empty"><div class="shape-label">2×2</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 2 · 5× <span class="tt-disabled">DISABLED</span></div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>4 L, 4 M, 1 S</b></div>
+        <div class="tt-row"><span>Income:</span><b>0/s</b></div>
+      </div>
+    </div><div class="zone">
+      <button class="toggle" data-toggle="2" title="Disable">✓</button>
+      <div class="mult">3×</div>
+      <div class="income">Zone 3 · 152.30K gas/s</div>
+      <div class="zone-grid"><div data-zone="2" data-slot="0" class="slot L" draggable="true"><div class="name">Uranium</div><div class="rate">37.50K gas/s</div></div><div data-zone="2" data-slot="1" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">525 gas/s</div></div><div data-zone="2" data-slot="2" class="slot L" draggable="true"><div class="name">Uranium</div><div class="rate">37.50K gas/s</div></div><div data-zone="2" data-slot="3" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">525 gas/s</div></div><div data-zone="2" data-slot="4" class="slot S" draggable="true"><div class="name">Mini Ruby</div><div class="rate">201 gas/s</div></div><div data-zone="2" data-slot="5" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">525 gas/s</div></div><div data-zone="2" data-slot="6" class="slot L" draggable="true"><div class="name">Uranium</div><div class="rate">37.50K gas/s</div></div><div data-zone="2" data-slot="7" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">525 gas/s</div></div><div data-zone="2" data-slot="8" class="slot L" draggable="true"><div class="name">Uranium</div><div class="rate">37.50K gas/s</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 3 · 3×</div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>—</b></div>
+        <div class="tt-row"><span>Income:</span><b>13.14M/s</b></div>
+      </div>
+    </div><div class="zone">
+      <button class="toggle" data-toggle="3" title="Disable">✓</button>
+      <div class="mult">2×</div>
+      <div class="income">Zone 4 · 61.53K gas/s</div>
+      <div class="zone-grid"><div data-zone="3" data-slot="0" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div><div data-zone="3" data-slot="1" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="3" data-slot="2" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div><div data-zone="3" data-slot="3" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="3" data-slot="4" class="slot S" draggable="true"><div class="name">Mini Ruby</div><div class="rate">134 gas/s</div></div><div data-zone="3" data-slot="5" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="3" data-slot="6" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div><div data-zone="3" data-slot="7" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="3" data-slot="8" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 4 · 2×</div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>—</b></div>
+        <div class="tt-row"><span>Income:</span><b>5.31M/s</b></div>
+      </div>
+    </div><div class="zone">
+      <button class="toggle" data-toggle="4" title="Disable">✓</button>
+      <div class="mult">2×</div>
+      <div class="income">Zone 5 · 61.53K gas/s</div>
+      <div class="zone-grid"><div data-zone="4" data-slot="0" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div><div data-zone="4" data-slot="1" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="4" data-slot="2" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div><div data-zone="4" data-slot="3" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="4" data-slot="4" class="slot S" draggable="true"><div class="name">Mini Ruby</div><div class="rate">134 gas/s</div></div><div data-zone="4" data-slot="5" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="4" data-slot="6" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div><div data-zone="4" data-slot="7" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="4" data-slot="8" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 5 · 2×</div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>—</b></div>
+        <div class="tt-row"><span>Income:</span><b>5.31M/s</b></div>
+      </div>
+    </div><div class="zone">
+      <button class="toggle" data-toggle="5" title="Disable">✓</button>
+      <div class="mult">2×</div>
+      <div class="income">Zone 6 · 61.53K gas/s</div>
+      <div class="zone-grid"><div data-zone="5" data-slot="0" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div><div data-zone="5" data-slot="1" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="5" data-slot="2" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div><div data-zone="5" data-slot="3" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="5" data-slot="4" class="slot S" draggable="true"><div class="name">Mini Ruby</div><div class="rate">134 gas/s</div></div><div data-zone="5" data-slot="5" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="5" data-slot="6" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div><div data-zone="5" data-slot="7" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">350 gas/s</div></div><div data-zone="5" data-slot="8" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">15.00K gas/s</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 6 · 2×</div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>—</b></div>
+        <div class="tt-row"><span>Income:</span><b>5.31M/s</b></div>
+      </div>
+    </div><div class="zone">
+      <button class="toggle" data-toggle="6" title="Disable">✓</button>
+      <div class="mult">1×</div>
+      <div class="income">Zone 7 · 30.77K gas/s</div>
+      <div class="zone-grid"><div data-zone="6" data-slot="0" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">7.50K gas/s</div></div><div data-zone="6" data-slot="1" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="6" data-slot="2" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">7.50K gas/s</div></div><div data-zone="6" data-slot="3" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="6" data-slot="4" class="slot S" draggable="true"><div class="name">Mini Ruby</div><div class="rate">67 gas/s</div></div><div data-zone="6" data-slot="5" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="6" data-slot="6" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">7.50K gas/s</div></div><div data-zone="6" data-slot="7" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="6" data-slot="8" class="slot L" draggable="true"><div class="name">Fusion</div><div class="rate">7.50K gas/s</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 7 · 1×</div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>—</b></div>
+        <div class="tt-row"><span>Income:</span><b>2.65M/s</b></div>
+      </div>
+    </div><div class="zone">
+      <button class="toggle" data-toggle="7" title="Disable">✓</button>
+      <div class="mult">1×</div>
+      <div class="income">Zone 8 · 18.77K gas/s</div>
+      <div class="zone-grid"><div data-zone="7" data-slot="0" class="slot L" draggable="true"><div class="name">Ruby</div><div class="rate">4.50K gas/s</div></div><div data-zone="7" data-slot="1" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="7" data-slot="2" class="slot L" draggable="true"><div class="name">Ruby</div><div class="rate">4.50K gas/s</div></div><div data-zone="7" data-slot="3" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="7" data-slot="4" class="slot S" draggable="true"><div class="name">Mini Ruby</div><div class="rate">67 gas/s</div></div><div data-zone="7" data-slot="5" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="7" data-slot="6" class="slot L" draggable="true"><div class="name">Ruby</div><div class="rate">4.50K gas/s</div></div><div data-zone="7" data-slot="7" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="7" data-slot="8" class="slot L" draggable="true"><div class="name">Ruby</div><div class="rate">4.50K gas/s</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 8 · 1×</div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>—</b></div>
+        <div class="tt-row"><span>Income:</span><b>1.62M/s</b></div>
+      </div>
+    </div><div class="zone">
+      <button class="toggle" data-toggle="8" title="Disable">✓</button>
+      <div class="mult">1×</div>
+      <div class="income">Zone 9 · 11.77K gas/s</div>
+      <div class="zone-grid"><div data-zone="8" data-slot="0" class="slot L" draggable="true"><div class="name">Diamond</div><div class="rate">2.75K gas/s</div></div><div data-zone="8" data-slot="1" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="8" data-slot="2" class="slot L" draggable="true"><div class="name">Diamond</div><div class="rate">2.75K gas/s</div></div><div data-zone="8" data-slot="3" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="8" data-slot="4" class="slot S" draggable="true"><div class="name">Mini Ruby</div><div class="rate">67 gas/s</div></div><div data-zone="8" data-slot="5" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="8" data-slot="6" class="slot L" draggable="true"><div class="name">Diamond</div><div class="rate">2.75K gas/s</div></div><div data-zone="8" data-slot="7" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="8" data-slot="8" class="slot L" draggable="true"><div class="name">Diamond</div><div class="rate">2.75K gas/s</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 9 · 1×</div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>—</b></div>
+        <div class="tt-row"><span>Income:</span><b>1.01M/s</b></div>
+      </div>
+    </div><div class="zone off">
+      <button class="toggle" data-toggle="9" title="Enable">✕</button>
+      <div class="mult">1×</div>
+      <div class="income">Zone 10 · off</div>
+      <div class="zone-grid"><div data-zone="9" data-slot="0" class="slot L empty"><div class="shape-label">2×2</div></div><div data-zone="9" data-slot="1" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="9" data-slot="2" class="slot L empty"><div class="shape-label">2×2</div></div><div data-zone="9" data-slot="3" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="9" data-slot="4" class="slot S empty"><div class="shape-label">1×1</div></div><div data-zone="9" data-slot="5" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="9" data-slot="6" class="slot L empty"><div class="shape-label">2×2</div></div><div data-zone="9" data-slot="7" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="9" data-slot="8" class="slot L empty"><div class="shape-label">2×2</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 10 · 1× <span class="tt-disabled">DISABLED</span></div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>4 L, 4 M, 1 S</b></div>
+        <div class="tt-row"><span>Income:</span><b>0/s</b></div>
+      </div>
+    </div><div class="zone">
+      <button class="toggle" data-toggle="10" title="Disable">✓</button>
+      <div class="mult">1×</div>
+      <div class="income">Zone 11 · 9.02K gas/s</div>
+      <div class="zone-grid"><div data-zone="10" data-slot="0" class="slot L" draggable="true"><div class="name">Diamond</div><div class="rate">2.75K gas/s</div></div><div data-zone="10" data-slot="1" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="10" data-slot="2" class="slot L" draggable="true"><div class="name">Diamond</div><div class="rate">2.75K gas/s</div></div><div data-zone="10" data-slot="3" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="10" data-slot="4" class="slot S" draggable="true"><div class="name">Mini Ruby</div><div class="rate">67 gas/s</div></div><div data-zone="10" data-slot="5" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="10" data-slot="6" class="slot L" draggable="true"><div class="name">Diamond</div><div class="rate">2.75K gas/s</div></div><div data-zone="10" data-slot="7" class="slot M" draggable="true"><div class="name">Quantum</div><div class="rate">175 gas/s</div></div><div data-zone="10" data-slot="8" class="slot L empty"><div class="shape-label">2×2</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 11 · 1×</div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>1 L</b></div>
+        <div class="tt-row"><span>Income:</span><b>777.72K/s</b></div>
+      </div>
+    </div><div class="zone off">
+      <button class="toggle" data-toggle="11" title="Enable">✕</button>
+      <div class="mult">1×</div>
+      <div class="income">Zone 12 · off</div>
+      <div class="zone-grid"><div data-zone="11" data-slot="0" class="slot L empty"><div class="shape-label">2×2</div></div><div data-zone="11" data-slot="1" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="11" data-slot="2" class="slot L empty"><div class="shape-label">2×2</div></div><div data-zone="11" data-slot="3" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="11" data-slot="4" class="slot S empty"><div class="shape-label">1×1</div></div><div data-zone="11" data-slot="5" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="11" data-slot="6" class="slot L empty"><div class="shape-label">2×2</div></div><div data-zone="11" data-slot="7" class="slot M empty"><div class="shape-label">2×1</div></div><div data-zone="11" data-slot="8" class="slot L empty"><div class="shape-label">2×2</div></div></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">Zone 12 · 1× <span class="tt-disabled">DISABLED</span></div>
+        <div class="tt-row"><span>Slots:</span><b>4× L, 4× M, 1× S</b></div>
+        <div class="tt-row"><span>Empty:</span><b>4 L, 4 M, 1 S</b></div>
+        <div class="tt-row"><span>Income:</span><b>0/s</b></div>
+      </div>
+    </div></div>
+    <div class="legend" style="margin-top:8px" data-i18n="zonesLegend">Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Double-click a slot: remove machine.</div>
+  </div>
+
+  <!-- RIGHT: Suggestions / calculator -->
+  <div class="panel">
+    <h3 data-i18n="investmentTitle">Investment Suggestion</h3>
+    <div class="row">
+      <input id="budget" type="text" data-i18n-ph="budgetPh" placeholder="Budget (e.g. 1T)">
+      <button class="primary" id="btnInvest" style="width:auto;flex:0 0 auto;margin-bottom:0" data-i18n="invest">Suggest</button>
+    </div>
+    <button class="primary" id="btnAuto" data-i18n="autoPlace">Auto-Place</button>
+    <div id="suggestion" class="suggest empty" data-i18n="noSuggestion">No suggestion yet.</div>
+    <div id="moves" class="moves"></div>
+
+    <h3 style="margin-top:14px" data-i18n="threeWayTitle">3-Way Calculator (Gas / Money / Time)</h3>
+    <div class="row"><span style="width:60px;color:var(--muted);align-self:center" data-i18n="gasLabel">Gas</span><input id="cBenzin" data-i18n-ph="gasPh" placeholder="e.g. 1.5M"></div>
+    <div class="row"><span style="width:60px;color:var(--muted);align-self:center" data-i18n="moneyLabel">Money</span><input id="cPara" data-i18n-ph="moneyPh" placeholder="e.g. 1B"></div>
+    <div class="row"><span style="width:60px;color:var(--muted);align-self:center" data-i18n="timeLabel">Time</span><input id="cSure" data-i18n-ph="timePh" placeholder="e.g. 5m, 2h, 1d, 30s"></div>
+    <div id="calcOut" class="legend" data-i18n="threeWayHint">Type in one → the other two are solved using current production rate.</div>
+
+    <h3 style="margin-top:14px" data-i18n="machineCalc">Machine Calculator</h3>
+    <div class="row">
+      <select id="targetMachine"><option value="">— Choose a machine —</option><option value="m1778447750139">Mini Ruby (0)</option><option value="m1778447701933">Mini Diamond (0)</option><option value="m1778447765648">Quantum (0)</option><option value="m1778449160005">Crystal (9.00B)</option><option value="m1778448934122">Diamond (27.50B)</option><option value="m1778448911681">Ruby (85.50B)</option><option value="m1778447536933">Fusion (137.50B)</option><option value="m1778445752408">Uranium (437.50B)</option><option value="m1778447554327">Radium (810.00B)</option><option value="m1778447614796">Palladium (1.20T)</option><option value="m1778447627842">Thorium (2.10T)</option></select>
+      <input id="targetQty" type="number" value="1" min="1" style="width:60px;flex:0">
+    </div>
+    <div id="affordResult" class="afford-card"><div class="big">—<span class="unit">No machine chosen</span></div><div class="sub">Choose a machine</div></div>
+
+    <h3 style="margin-top:14px" data-i18n="machineCompare">Machine Comparator</h3>
+    <div id="cmpRows"><div class="cmp-row" data-id="1">
+    <select class="cmp-mach"><option value="m1778447750139">Mini Ruby (0)</option><option value="m1778447701933">Mini Diamond (0)</option><option value="m1778447765648">Quantum (0)</option><option value="m1778449160005">Crystal (9.00B)</option><option value="m1778448934122">Diamond (27.50B)</option><option value="m1778448911681">Ruby (85.50B)</option><option value="m1778447536933">Fusion (137.50B)</option><option value="m1778445752408">Uranium (437.50B)</option><option value="m1778447554327">Radium (810.00B)</option><option value="m1778447614796">Palladium (1.20T)</option><option value="m1778447627842">Thorium (2.10T)</option></select>
+    <input class="cmp-qty" type="number" min="1" value="1">
+    <button class="rm" title="Delete">×</button>
+  </div><div class="cmp-row" data-id="2">
+    <select class="cmp-mach"><option value="m1778447750139">Mini Ruby (0)</option><option value="m1778447701933">Mini Diamond (0)</option><option value="m1778447765648">Quantum (0)</option><option value="m1778449160005">Crystal (9.00B)</option><option value="m1778448934122">Diamond (27.50B)</option><option value="m1778448911681">Ruby (85.50B)</option><option value="m1778447536933">Fusion (137.50B)</option><option value="m1778445752408">Uranium (437.50B)</option><option value="m1778447554327">Radium (810.00B)</option><option value="m1778447614796">Palladium (1.20T)</option><option value="m1778447627842">Thorium (2.10T)</option></select>
+    <input class="cmp-qty" type="number" min="1" value="1">
+    <button class="rm" title="Delete">×</button>
+  </div></div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+      <button class="ghost" id="cmpAddRow" data-i18n="addOption">+ option</button>
+      <button class="primary" id="cmpRun" style="flex:1;margin-bottom:0" data-i18n="compare">Compare</button>
+    </div>
+    <div class="legend" data-i18n="compareHint">Optimal placement is assumed for each option (existing placements are redistributed). The one that adds the most income wins.</div>
+    <div id="cmpResult"></div>
+
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+      <button class="primary" id="btnCollect" data-i18n="collect">Collect Machines</button>
+      <button class="danger" id="btnWipe" data-i18n="reset">Reset</button>
+    </div>
+  </div>
+</main>
+
+<!-- Machine edit dialog -->
+<dialog id="dlgMachine">
+  <h3 id="dlgTitle" data-i18n="addMachine">Add Machine</h3>
+  <div class="form-row"><label data-i18n="fName">Name</label><input id="mName"></div>
+  <div class="form-row"><label data-i18n="fCost">Price (e.g. 9B, 1.2T, 437.5e9)</label><input id="mCost"></div>
+  <div class="form-row"><label data-i18n="fRate">Production / second</label><input id="mRate" type="number" step="0.01"></div>
+  <div class="form-row">
+    <label data-i18n="fSize">Size</label>
+    <div class="size-radios">
+      <label><input type="radio" name="mSize" value="L"> <span data-i18n="sizeL">2x2 (large)</span></label>
+      <label><input type="radio" name="mSize" value="M"> <span data-i18n="sizeM">2x1 (medium)</span></label>
+      <label><input type="radio" name="mSize" value="S"> <span data-i18n="sizeS">1x1 (small)</span></label>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;gap:8px">
+    <button class="ghost" id="mDelete" data-i18n="delete">Delete</button>
+    <div>
+      <button class="ghost" id="mCancel" data-i18n="cancel">Cancel</button>
+      <button class="primary" style="display:inline-block;width:auto" id="mSave" data-i18n="save">Save</button>
+    </div>
+  </div>
+</dialog>
+
+<script id="embeddedState">window.__EMBEDDED_STATE__ = {"zones":[{"mult":3,"disabled":false,"slots":[{"shape":"L","machine":"m1778447627842","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447614796","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447614796","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]}]},{"mult":5,"disabled":true,"slots":[{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"S","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]}]},{"mult":3,"disabled":false,"slots":[{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778445752408","split":false,"sub":[null,null]}]},{"mult":2,"disabled":false,"slots":[{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]}]},{"mult":2,"disabled":false,"slots":[{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]}]},{"mult":2,"disabled":false,"slots":[{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]}]},{"mult":1,"disabled":false,"slots":[{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778447536933","split":false,"sub":[null,null]}]},{"mult":1,"disabled":false,"slots":[{"shape":"L","machine":"m1778448911681","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448911681","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448911681","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448911681","split":false,"sub":[null,null]}]},{"mult":1,"disabled":false,"slots":[{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]}]},{"mult":1,"disabled":true,"slots":[{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"S","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]}]},{"mult":1,"disabled":false,"slots":[{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"S","machine":"m1778447750139","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":"m1778448934122","split":false,"sub":[null,null]},{"shape":"M","machine":"m1778447765648","split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]}]},{"mult":1,"disabled":true,"slots":[{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"S","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]},{"shape":"M","machine":null,"split":false,"sub":[null,null]},{"shape":"L","machine":null,"split":false,"sub":[null,null]}]}],"catalog":[{"id":"m1778447750139","name":"Mini Ruby","cost":0,"rate":67,"size":"S"},{"id":"m1778447701933","name":"Mini Diamond","cost":0,"rate":100,"size":"S"},{"id":"m1778447765648","name":"Quantum","cost":0,"rate":175,"size":"M"},{"id":"m1778449160005","name":"Crystal","cost":9000000000,"rate":1500,"size":"L"},{"id":"m1778448934122","name":"Diamond","cost":27500000000,"rate":2750,"size":"L"},{"id":"m1778448911681","name":"Ruby","cost":85500000000,"rate":4500,"size":"L"},{"id":"m1778447536933","name":"Fusion","cost":137500000000,"rate":7500,"size":"L"},{"id":"m1778445752408","name":"Uranium","cost":437500000000,"rate":12500,"size":"L"},{"id":"m1778447554327","name":"Radium","cost":810000000000,"rate":18000,"size":"L"},{"id":"m1778447614796","name":"Palladium","cost":1200000000000,"rate":25000,"size":"L"},{"id":"m1778447627842","name":"Thorium","cost":2100000000000,"rate":37500,"size":"L"}],"inventory":{"m1778447536933":16,"m1778445752408":5,"m1778447554327":0,"m1778448911681":4,"m1778448934122":7,"m1778447614796":2,"m1778447627842":1,"m1778447765648":36,"m1778447750139":54},"money":250000000000,"gas":0,"sellPrice":15,"bonus":4.75,"tacoGas":0,"muted":false,"lang":"en"};</script>
+<script>
+"use strict";
+
+// ============ I18N ============
+const I18N = {
+  en: {
+    // Header
+    money:'Money', gas:'Gas Stock', sellPrice:'Sell price (×)', bonus:'Bonus (e.g. 4.75 = 475%)',
+    totalRate:'Total production/s', totalIncome:'Total money/s', tacoValue:'Taco value',
+    save:'Save', saved:'Saved.', share:'Share', shareDone:'HTML with your data downloaded. Send that file.',
+    // Panels
+    inventory:'Inventory', addEditMachine:'+ Add/Edit Machine Type',
+    paletteLegend:'Number = available. <b>+/−</b> to update owned. Drag chip → place in zone. ✎ to edit. Hover chip + <b>W/S</b>: reorder.',
+    zonesLegend:'Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Double-click a slot: remove machine.',
+    investmentTitle:'Investment Suggestion',
+    budgetPh:'Budget (e.g. 1T)', invest:'Suggest', autoPlace:'Auto-Place',
+    noSuggestion:'No suggestion yet.',
+    threeWayTitle:'3-Way Calculator (Gas / Money / Time)',
+    gasLabel:'Gas', moneyLabel:'Money', timeLabel:'Time',
+    gasPh:'e.g. 1.5M', moneyPh:'e.g. 1B', timePh:'e.g. 5m, 2h, 1d, 30s',
+    threeWayHint:'Type in one → the other two are solved using current production rate.',
+    machineCalc:'Machine Calculator',
+    machineCompare:'Machine Comparator',
+    addOption:'+ option', compare:'Compare',
+    compareHint:'Optimal placement is assumed for each option (existing placements are redistributed). The one that adds the most income wins.',
+    collect:'Collect Machines', reset:'Reset',
+    // Dialog
+    addMachine:'Add Machine', editMachine:'Edit Machine',
+    fName:'Name', fCost:'Price (e.g. 9B, 1.2T, 437.5e9)', fRate:'Production / second',
+    fSize:'Size', sizeL:'2x2 (large)', sizeM:'2x1 (medium)', sizeS:'1x1 (small)',
+    delete:'Delete', cancel:'Cancel',
+    // Calculator card
+    pickMachine:'Choose a machine', noChoice:'No machine chosen', ready:'✓ Ready', readyBadge:'Enough',
+    needLabel:'need', haveLabel:'in wallet', missingLabel:'missing', incomeLabel:'income',
+    paybackUnit:'payback', timeUnit:'time',
+    // Suggestion messages
+    enterBudget:'Enter a budget.', noInvestFound:'No useful investment found within budget.',
+    sgWaitHeader:(t,name,d,p)=>`⏳ Save first: wait ${t} → ${name} · net +${d}/s · payback ${p}`,
+    sgSpendHeader:(name,c,d,p,extra)=>`Suggested: ${name} · ${c} → +${d}/s · payback ${p}${extra}`,
+    noRoomTail:(n)=>` · ⚠️ no room for ${n}`,
+    buyN:(qty,name)=>`Buy ${qty}× ${name}`,
+    waitN:(qty,name)=>`Wait → ${qty}× ${name}`,
+    detailBuy:(qty,name,spent)=>`Buy ${qty}× ${name} (${spent})`,
+    detailWait:(t,inc,need,qty,name,cost)=>`⏳ Wait ${t} (${inc}/s to save ${need}), then buy ${qty}× ${name} (${cost})`,
+    noRoomDetail:(n)=>` · ⚠️ no room for ${n}`,
+    // Auto-place
+    autoMsg:(p,left)=>`Auto-place: ${p} machines placed${left?`, ${left} left in inventory (no room)`:''}.`,
+    // Comparator
+    compareMin:'At least 2 options required.',
+    winner:'WINNER',
+    cmpCost:'Cost', cmpDelta:'Δincome', cmpPayback:'Payback',
+    cmpPlacement:'Placement', cmpNoRoom:(n)=>`⚠️ no room for ${n}`,
+    // Zone
+    zonePrefix:'Zone', off:'off', gasPerSec:(v)=>`${v} gas/s`,
+    // Slot/chip
+    chipPlaced:(p,o)=>`placed ${p}/${o}`,
+    available:'available', plusOwn:'+1 owned', minusOwn:'−1 owned', edit:'edit',
+    // Other
+    confirmReset:'Reset inventory, placements, money/gas/zone state? (Saved machine types remain.)',
+    confirmDelete:'Are you sure you want to delete this machine? Placed copies will also be removed.',
+    noInInventory:(name)=>`No ${name} in inventory.`,
+    collected:(n)=>`${n} machines collected to inventory.`,
+    // 3-way
+    twoWayLine:(src,g,m)=>`${src} = ${g} gas = ${m} money`,
+    twoWayWithRate:(rate,t)=>` · production ${rate}/s → ${t}`,
+    twoWayNoRate:' · (no production → time cannot be computed)',
+    twoWayHint:'Type in one → the other two are solved.',
+    // Zone tooltip
+    ttSlots:'Slots', ttEmpty:'Empty', ttIncome:'Income', ttDisabled:'DISABLED',
+    // Taco
+    tacoGas:(v)=>`${v} gas`,
+    // Time units
+    uS:'s', uM:'m', uH:'h', uD:'d',
+  },
+  tr: {
+    money:'Para', gas:'Benzin Stoğu', sellPrice:'Satış fiyatı (×)', bonus:'Bonus (örn 4.75 = %475)',
+    totalRate:'Toplam üretim/s', totalIncome:'Toplam para/s', tacoValue:'Taco değeri',
+    save:'Kaydet', saved:'Kaydedildi.', share:'Paylaş', shareDone:'Verilerinle dolu HTML indirildi. Onu gönder.',
+    inventory:'Envanter', addEditMachine:'+ Makine Tipi Ekle/Düzenle',
+    paletteLegend:'Sayı = kullanılabilir adet. <b>+/−</b> ile sahip olduğunu güncelle. Çipi sürükle → bölgeye yerleştir. ✎ ile makineyi düzenle. Çipin üstünde <b>W/S</b>: sırayı değiştir.',
+    zonesLegend:'Hover + <span class="kbd">C</span>: 2x1 slotu 2 adet 1x1\'e böler / birleştirir. Slota çift tıkla: makineyi sök.',
+    investmentTitle:'Yatırım Önerisi',
+    budgetPh:'Bütçe (örn 1T)', invest:'Yatırım Öner', autoPlace:'Otomatik Yerleştir',
+    noSuggestion:'Henüz öneri yok.',
+    threeWayTitle:'3 Yönlü Hesap (Benzin / Para / Süre)',
+    gasLabel:'Benzin', moneyLabel:'Para', timeLabel:'Süre',
+    gasPh:'örn 1.5M', moneyPh:'örn 1B', timePh:'örn 5m, 2h, 1d, 30s',
+    threeWayHint:'Bir alana yaz → diğer ikisi mevcut üretim hızına göre çözülür.',
+    machineCalc:'Makine Hesaplayıcı',
+    machineCompare:'Makine Karşılaştırıcı',
+    addOption:'+ seçenek', compare:'Karşılaştır',
+    compareHint:'Her seçenek için optimal yerleşim varsayılır (mevcut yerleşik makineler dahil yeniden dağıtılır). En çok gelir getiren kazanır.',
+    collect:'Makineleri Topla', reset:'Sıfırla',
+    addMachine:'Makine Ekle', editMachine:'Makine Düzenle',
+    fName:'Ad', fCost:'Fiyat (örn 9B, 1.2T, 437.5e9)', fRate:'Üretim / saniye',
+    fSize:'Boyut', sizeL:'2x2 (büyük)', sizeM:'2x1 (orta)', sizeS:'1x1 (küçük)',
+    delete:'Sil', cancel:'İptal',
+    pickMachine:'Bir makine seç', noChoice:'Makine seçilmedi', ready:'✓ Hazır', readyBadge:'Yeterli',
+    needLabel:'gerek', haveLabel:'cebinde', missingLabel:'eksik', incomeLabel:'gelir',
+    paybackUnit:'geri kazanım', timeUnit:'süre',
+    enterBudget:'Bütçe gir.', noInvestFound:'Bütçeyle anlamlı bir yatırım bulunamadı.',
+    sgWaitHeader:(t,name,d,p)=>`⏳ Önce biriktir: ${t} bekle → ${name} · net +${d}/s · payback ${p}`,
+    sgSpendHeader:(name,c,d,p,extra)=>`Öneri: ${name} · ${c} → +${d}/s · payback ${p}${extra}`,
+    noRoomTail:(n)=>` · ⚠️ ${n} adet yer bulamadı`,
+    buyN:(qty,name)=>`${qty}× ${name}`,
+    waitN:(qty,name)=>`Bekle → ${qty}× ${name}`,
+    detailBuy:(qty,name,spent)=>`${qty}× ${name} satın al (${spent})`,
+    detailWait:(t,inc,need,qty,name,cost)=>`⏳ ${t} bekle (${inc}/s ile ${need} biriktir), sonra ${qty}× ${name} satın al (${cost})`,
+    noRoomDetail:(n)=>` · ⚠️ ${n} tanesine yer yok`,
+    autoMsg:(p,left)=>`Otomatik yerleştirme: ${p} makine yerleştirildi${left?`, ${left} makine envanterde kaldı (yer yok)`:''}.`,
+    compareMin:'En az 2 seçenek gerekli.',
+    winner:'KAZANAN',
+    cmpCost:'Maliyet', cmpDelta:'Δgelir', cmpPayback:'Payback',
+    cmpPlacement:'Yerleşim', cmpNoRoom:(n)=>`⚠️ ${n} tanesine yer yok`,
+    zonePrefix:'Bölge', off:'kapalı', gasPerSec:(v)=>`${v} benzin/s`,
+    chipPlaced:(p,o)=>`yerleşik ${p}/${o}`,
+    available:'kullanılabilir', plusOwn:'+1 sahip', minusOwn:'−1 sahip', edit:'düzenle',
+    confirmReset:'Envanter, yerleşik makineler, para/benzin/bölge durumu sıfırlansın mı? (Kayıtlı makine tipleri kalır.)',
+    confirmDelete:'Bu makineyi silmek emin misin? Yerleştirilmiş kopyalar da kaldırılır.',
+    noInInventory:(name)=>`Envanterinde ${name} yok.`,
+    collected:(n)=>`${n} makine envantere toplandı.`,
+    twoWayLine:(src,g,m)=>`${src} = ${g} benzin = ${m} para`,
+    twoWayWithRate:(rate,t)=>` · üretim ${rate}/s ile ${t}`,
+    twoWayNoRate:' · (üretim 0 → süre hesaplanamaz)',
+    twoWayHint:'Bir alana yaz → diğer ikisi çözülür.',
+    ttSlots:'Slot', ttEmpty:'Boş', ttIncome:'Gelir', ttDisabled:'KAPALI',
+    tacoGas:(v)=>`${v} benzin`,
+    uS:'sn', uM:'dk', uH:'sa', uD:'gün',
+  },
+};
+function T(key, ...args){
+  const lang = (typeof state !== 'undefined' && state.lang) || 'en';
+  const v = (I18N[lang] && I18N[lang][key]) ?? (I18N.en[key] ?? key);
+  return typeof v === 'function' ? v(...args) : v;
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.innerHTML = T(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.placeholder = T(el.dataset.i18nPh);
+  });
+  document.title = state.lang==='tr' ? 'Yağ Hesaplayıcı' : 'Oil Calculator';
+  document.documentElement.lang = state.lang;
+}
+
+// ============ CONSTANTS ============
+// Layout (3 sütun × 4 satır):
+//   3×  5×  3×
+//   2×  2×  2×
+//   1×  1×  1×
+//   1×  1×  1×
+const ZONE_MULTS = [3,5,3, 2,2,2, 1,1,1, 1,1,1];
+const SLOT_SHAPES = ['L','M','L','M','S','M','L','M','L'];
+const STORAGE_KEY = 'idle-optimizer-v1';
+
+const DEFAULT_MACHINES = [
+  {id:'t1', name:'T1', cost:9e9,    rate:1500,  size:'S'},
+  {id:'t2', name:'T2', cost:27.5e9, rate:2750,  size:'M'},
+  {id:'t3', name:'T3', cost:85.5e9, rate:4500,  size:'M'},
+  {id:'t4', name:'T4', cost:187.5e9,rate:7500,  size:'L'},
+  {id:'t5', name:'T5', cost:437.5e9,rate:12500, size:'L'},
+  {id:'t6', name:'T6', cost:1.2e12, rate:25000, size:'L'},
+];
+
+// ============ STATE ============
+let state = loadState() || makeFreshState();
+
+function makeFreshState(){
+  const zones = ZONE_MULTS.map(m => ({
+    mult: m, disabled: false,
+    slots: SLOT_SHAPES.map(shape => ({shape, machine:null, split:false, sub:[null,null]}))
+  }));
+  return {
+    zones,
+    catalog: structuredClone(DEFAULT_MACHINES),
+    inventory: {}, // machineId -> total owned count
+    money: 0, gas: 0,
+    sellPrice: 15, bonus: 4.75,
+    tacoGas: 0,
+    muted: false,
+    lang: 'en',
+  };
+}
+function placedCount(machineId){
+  let n = 0;
+  for(const it of iterSlots()) if(it.machine === machineId) n++;
+  return n;
+}
+function ownedCount(machineId){ return state.inventory[machineId] || 0; }
+function availableCount(machineId){ return Math.max(0, ownedCount(machineId) - placedCount(machineId)); }
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function loadState(){
+  try{
+    let raw = null;
+    let fromEmbed = false;
+    if(window.__EMBEDDED_STATE__){
+      // Shared file: embedded snapshot wins, but only import each unique snapshot once
+      // so the recipient's own progress isn't overwritten on every reload.
+      const embedJson = JSON.stringify(window.__EMBEDDED_STATE__);
+      let hash = 0;
+      for(let i=0;i<embedJson.length;i++){ hash = (hash*31 + embedJson.charCodeAt(i)) | 0; }
+      const importedKey = STORAGE_KEY + ':imported:' + hash;
+      if(!localStorage.getItem(importedKey)){
+        raw = embedJson;
+        fromEmbed = true;
+        try{ localStorage.setItem(importedKey, '1'); } catch(e){}
+      }
+    }
+    if(!raw) raw = localStorage.getItem(STORAGE_KEY);
+    const s = JSON.parse(raw);
+    if(!s || !s.zones) return null;
+    if(fromEmbed){
+      try{ localStorage.setItem(STORAGE_KEY, raw); } catch(e){}
+    }
+    if(!s.inventory) s.inventory = {};
+    if(typeof s.tacoGas !== 'number') s.tacoGas = 0;
+    if(typeof s.muted !== 'boolean') s.muted = false;
+    if(s.lang !== 'tr' && s.lang !== 'en') s.lang = 'en';
+    // Eski kayıtlardaki sıralama farklı olabilir → bölge mult'larını mevcut layout'a göre güncelle.
+    for(let i=0;i<ZONE_MULTS.length && i<s.zones.length;i++){
+      s.zones[i].mult = ZONE_MULTS[i];
+      if(typeof s.zones[i].disabled !== 'boolean') s.zones[i].disabled = false;
+    }
+    return s;
+  } catch(e){ return null; }
+}
+
+// ============ HELPERS ============
+function machineById(id){ return state.catalog.find(m => m.id === id) || null; }
+
+function parseNum(str){
+  if(typeof str === 'number') return str;
+  if(!str) return 0;
+  let s = String(str).trim().replace(/,/g,'').replace(/\s/g,'');
+  const m = s.match(/^(-?[\d.]+)\s*([KMBTQq]?)$/i);
+  if(!m) return Number(s) || 0;
+  const v = parseFloat(m[1]);
+  const suf = m[2].toUpperCase();
+  const mult = {'':1,K:1e3,M:1e6,B:1e9,T:1e12,Q:1e15}[suf] ?? 1;
+  return v * mult;
+}
+function fmt(n){
+  if(n == null || !isFinite(n)) return '—';
+  const a = Math.abs(n);
+  if(a >= 1e15) return (n/1e15).toFixed(2)+'Q';
+  if(a >= 1e12) return (n/1e12).toFixed(2)+'T';
+  if(a >= 1e9)  return (n/1e9).toFixed(2)+'B';
+  if(a >= 1e6)  return (n/1e6).toFixed(2)+'M';
+  if(a >= 1e3)  return (n/1e3).toFixed(2)+'K';
+  return Math.round(n*100)/100 + '';
+}
+// Parse time strings: "5m", "2h", "1d", "30s", "5 dakika", "1.5sa", "1 gün", "90", "1h30m"
+const TIME_UNITS = {
+  s:1, sn:1, saniye:1,
+  m:60, dk:60, dakika:60,
+  h:3600, sa:3600, saat:3600,
+  d:86400, gun:86400, 'gün':86400,
+};
+function parseTime(str){
+  if(typeof str === 'number') return str;
+  if(str == null) return 0;
+  let s = String(str).trim().toLowerCase();
+  if(!s) return 0;
+  const re = /([\d.]+)\s*([a-zçğıöşü]+)?/g;
+  let total = 0, match, found = false;
+  while((match = re.exec(s)) !== null){
+    const v = parseFloat(match[1]);
+    if(!isFinite(v)) continue;
+    found = true;
+    const u = (match[2]||'').toLowerCase();
+    const mult = TIME_UNITS[u] != null ? TIME_UNITS[u] : 1;
+    total += v * mult;
+  }
+  return found ? total : 0;
+}
+function tweenNumber(el, to, suffix=''){
+  if(!el) return;
+  const fromTxt = el.dataset.raw;
+  const from = fromTxt !== undefined && fromTxt !== '' ? parseFloat(fromTxt) : to;
+  el.dataset.raw = to;
+  if(!isFinite(from) || from === to){ el.textContent = fmt(to) + suffix; return; }
+  const start = performance.now(); const dur = 220;
+  function step(t){
+    const p = Math.min(1, (t-start)/dur);
+    const e = 1 - Math.pow(1-p, 3);
+    el.textContent = fmt(from + (to-from)*e) + suffix;
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function fmtTime(seconds){
+  if(!isFinite(seconds) || seconds < 0) return '—';
+  if(seconds < 60) return seconds.toFixed(1)+T('uS');
+  if(seconds < 3600) return (seconds/60).toFixed(1)+T('uM');
+  if(seconds < 86400) return (seconds/3600).toFixed(1)+T('uH');
+  return (seconds/86400).toFixed(2)+T('uD');
+}
+
+// Iterate every "physical" placement slot, including split sub-slots.
+// yields {zoneIdx, slotIdx, subIdx (or -1), shape, machine}
+function* iterSlots(opts){
+  const skipDisabled = opts && opts.skipDisabled;
+  for(let z=0; z<state.zones.length; z++){
+    const zone = state.zones[z];
+    if(skipDisabled && zone.disabled) continue;
+    for(let s=0; s<zone.slots.length; s++){
+      const slot = zone.slots[s];
+      if(slot.shape === 'M' && slot.split){
+        for(let i=0;i<2;i++){
+          yield {zoneIdx:z, slotIdx:s, subIdx:i, shape:'S', machine:slot.sub[i]};
+        }
+      } else {
+        yield {zoneIdx:z, slotIdx:s, subIdx:-1, shape:slot.shape, machine:slot.machine};
+      }
+    }
+  }
+}
+function getSlotMachine(z,s,sub){
+  const slot = state.zones[z].slots[s];
+  return sub === -1 ? slot.machine : slot.sub[sub];
+}
+function setSlotMachine(z,s,sub,id){
+  const slot = state.zones[z].slots[s];
+  if(sub === -1) slot.machine = id;
+  else slot.sub[sub] = id;
+}
+
+function slotIncome(machineId, zoneMult){
+  const m = machineById(machineId);
+  if(!m) return 0;
+  return m.rate * zoneMult * state.sellPrice * (1 + state.bonus);
+}
+function slotRate(machineId, zoneMult){
+  const m = machineById(machineId);
+  if(!m) return 0;
+  return m.rate * zoneMult;
+}
+function totals(){
+  let r=0, inc=0;
+  for(const it of iterSlots({skipDisabled:true})){
+    if(it.machine){
+      const mult = state.zones[it.zoneIdx].mult;
+      r   += slotRate(it.machine, mult);
+      inc += slotIncome(it.machine, mult);
+    }
+  }
+  return {rate:r, income:inc};
+}
+
+// ============ RENDER ============
+function render(){
+  renderHeader();
+  renderPalette();
+  renderZones();
+  renderCalculator();
+  if(typeof refreshCmpOptions === 'function') refreshCmpOptions();
+  if(typeof recalc3way === 'function') recalc3way();
+  saveState();
+}
+function renderHeader(){
+  document.getElementById('money').value = fmt(state.money);
+  document.getElementById('gas').value = fmt(state.gas);
+  document.getElementById('sellPrice').value = state.sellPrice;
+  document.getElementById('bonus').value = state.bonus;
+  const t = totals();
+  tweenNumber(document.getElementById('totalRate'), t.rate, '/s');
+  tweenNumber(document.getElementById('totalIncome'), t.income, '/s');
+  // Taco değeri: gözlemlenen orandan → bir taco ≈ üretim hızının 25.88 saniyelik karşılığı benzin.
+  const TACO_SECONDS = 25.88;
+  const tv = document.getElementById('tacoValue');
+  if(t.rate > 0){
+    tweenNumber(tv, t.rate * TACO_SECONDS, ' ' + (state.lang==='tr'?'benzin':'gas'));
+  } else {
+    tv.dataset.raw = '';
+    tv.textContent = '—';
+  }
+}
+function renderPalette(){
+  const el = document.getElementById('palette');
+  el.innerHTML = '';
+  for(const m of state.catalog){
+    const avail = availableCount(m.id);
+    const owned = ownedCount(m.id);
+    const placed = placedCount(m.id);
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (avail<=0 ? ' disabled' : '');
+    chip.draggable = avail > 0;
+    chip.dataset.machineId = m.id;
+    chip.innerHTML = `
+      <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:${avail>0?'grab':'default'}">
+        <span class="swatch ${m.size}"></span>
+        <div style="min-width:0">
+          <div><b>${m.name}</b> <span class="meta">${m.size==='L'?'2x2':m.size==='M'?'2x1':'1x1'}</span> · <span class="meta">${T('chipPlaced', placed, owned)}</span></div>
+          <div class="meta">${fmt(m.cost)} → ${fmt(m.rate)}/s</div>
+        </div>
+      </div>
+      <span class="qty ${avail<=0?'zero':''}" title="${T('available')}">${avail}</span>
+      <div class="actions">
+        <button data-dec="${m.id}" title="${T('minusOwn')}">−</button>
+        <button data-inc="${m.id}" title="${T('plusOwn')}">+</button>
+        <button data-edit="${m.id}" title="${T('edit')}">✎</button>
+      </div>
+    `;
+    chip.addEventListener('dragstart', e => {
+      if(avail <= 0){ e.preventDefault(); return; }
+      e.dataTransfer.setData('text/plain', JSON.stringify({source:'palette', machineId: m.id}));
+      e.dataTransfer.effectAllowed = 'copy';
+      chip.classList.add('dragging');
+    });
+    chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+    chip.addEventListener('mouseenter', () => { hoveredChip = m.id; });
+    chip.addEventListener('mouseleave', () => { if(hoveredChip === m.id) hoveredChip = null; });
+    el.appendChild(chip);
+  }
+  el.querySelectorAll('button[data-edit]').forEach(b => {
+    b.onclick = (e) => { e.stopPropagation(); openMachineDialog(b.dataset.edit); };
+  });
+  el.querySelectorAll('button[data-inc]').forEach(b => {
+    b.onclick = (e) => { e.stopPropagation(); const id=b.dataset.inc; state.inventory[id]=ownedCount(id)+1; render(); };
+  });
+  el.querySelectorAll('button[data-dec]').forEach(b => {
+    b.onclick = (e) => { e.stopPropagation(); const id=b.dataset.dec; state.inventory[id]=Math.max(placedCount(id), ownedCount(id)-1); render(); };
+  });
+}
+function renderZones(){
+  const el = document.getElementById('zones');
+  el.innerHTML = '';
+  for(let z=0; z<state.zones.length; z++){
+    const zone = state.zones[z];
+    const card = document.createElement('div');
+    card.className = 'zone' + (zone.disabled ? ' off' : '');
+    let rate = 0, income = 0;
+    let shapeCounts = {L:0, M:0, S:0};
+    let emptyCounts = {L:0, M:0, S:0};
+    for(let s=0; s<zone.slots.length; s++){
+      const slot = zone.slots[s];
+      if(slot.shape === 'M' && slot.split){
+        for(let i=0;i<2;i++){
+          shapeCounts.S++;
+          if(slot.sub[i]){
+            rate += slotRate(slot.sub[i], zone.mult);
+            income += slotIncome(slot.sub[i], zone.mult);
+          } else emptyCounts.S++;
+        }
+      } else {
+        shapeCounts[slot.shape]++;
+        if(slot.machine){
+          rate += slotRate(slot.machine, zone.mult);
+          income += slotIncome(slot.machine, zone.mult);
+        } else emptyCounts[slot.shape]++;
+      }
+    }
+    const slotStr = ['L','M','S'].filter(k=>shapeCounts[k]>0).map(k=>`${shapeCounts[k]}× ${k}`).join(', ');
+    const emptyStr = ['L','M','S'].filter(k=>emptyCounts[k]>0).map(k=>`${emptyCounts[k]} ${k}`).join(', ') || '—';
+    card.innerHTML = `
+      <button class="toggle" data-toggle="${z}" title="${zone.disabled?(state.lang==='tr'?'Aç':'Enable'):(state.lang==='tr'?'Kapat':'Disable')}">${zone.disabled?'✕':'✓'}</button>
+      <div class="mult">${zone.mult}×</div>
+      <div class="income">${T('zonePrefix')} ${z+1} · ${zone.disabled ? T('off') : T('gasPerSec', fmt(rate))}</div>
+      <div class="zone-grid"></div>
+      <div class="zone-tooltip">
+        <div class="tt-title">${T('zonePrefix')} ${z+1} · ${zone.mult}×${zone.disabled?` <span class="tt-disabled">${T('ttDisabled')}</span>`:''}</div>
+        <div class="tt-row"><span>${T('ttSlots')}:</span><b>${slotStr}</b></div>
+        <div class="tt-row"><span>${T('ttEmpty')}:</span><b>${emptyStr}</b></div>
+        <div class="tt-row"><span>${T('ttIncome')}:</span><b>${fmt(income)}/s</b></div>
+      </div>
+    `;
+    card.querySelector('.toggle').onclick = (e) => {
+      e.stopPropagation();
+      zone.disabled = !zone.disabled;
+      clearSuggestions();
+      render();
+    };
+    const grid = card.querySelector('.zone-grid');
+    for(let s=0; s<9; s++){
+      const slot = zone.slots[s];
+      grid.appendChild(renderSlot(z, s, slot));
+    }
+    el.appendChild(card);
+  }
+}
+function renderSlot(z, s, slot){
+  const div = document.createElement('div');
+  div.dataset.zone = z;
+  div.dataset.slot = s;
+  if(slot.shape === 'M' && slot.split){
+    // Slot 1 ve 7 dikey (kolon), 3 ve 5 yatay (satır) M slotlardır.
+    const isHorizontal = (s === 3 || s === 5);
+    div.className = 'slot M split ' + (isHorizontal ? 'horizontal' : 'vertical');
+    for(let i=0;i<2;i++){
+      const sub = document.createElement('div');
+      sub.className = 'sub';
+      sub.dataset.sub = i;
+      const id = slot.sub[i];
+      if(id){
+        const m = machineById(id);
+        sub.innerHTML = `<div class="name">${m.name}</div>`;
+      } else {
+        sub.classList.add('empty');
+        sub.innerHTML = '<div class="shape-label">1×1</div>';
+      }
+      attachDnD(sub, z, s, i, 'S');
+      div.appendChild(sub);
+    }
+  } else {
+    div.className = 'slot ' + slot.shape;
+    if(slot.machine){
+      const m = machineById(slot.machine);
+      div.innerHTML = `<div class="name">${m.name}</div><div class="rate">${T('gasPerSec', fmt(slotRate(m.id, state.zones[z].mult)))}</div>`;
+    } else {
+      div.classList.add('empty');
+      const lbl = slot.shape === 'L' ? '2×2' : slot.shape === 'M' ? '2×1' : '1×1';
+      div.innerHTML = `<div class="shape-label">${lbl}</div>`;
+    }
+    attachDnD(div, z, s, -1, slot.shape);
+  }
+  // Hover for C key (only meaningful on M)
+  div.addEventListener('mouseenter', () => { hoveredM = (slot.shape === 'M') ? {z,s} : null; });
+  div.addEventListener('mouseleave', () => { if(hoveredM && hoveredM.z===z && hoveredM.s===s) hoveredM = null; });
+  // Double-click to remove
+  div.addEventListener('dblclick', e => {
+    e.preventDefault();
+    if(slot.shape === 'M' && slot.split) return; // sub handles its own dblclick
+    if(slot.machine){ slot.machine = null; clearSuggestions(); render(); }
+  });
+  return div;
+}
+
+function attachDnD(el, z, s, sub, shape){
+  el.addEventListener('dragover', e => {
+    e.preventDefault();
+    el.classList.add('dragover');
+  });
+  el.addEventListener('dragleave', () => el.classList.remove('dragover'));
+  el.addEventListener('drop', e => {
+    e.preventDefault();
+    el.classList.remove('dragover');
+    let data;
+    try{ data = JSON.parse(e.dataTransfer.getData('text/plain')); } catch(_){ return; }
+    handleDrop(data, {z, s, sub, shape}, el);
+  });
+  // Allow dragging out of filled slots
+  if(sub === -1){
+    const slot = state.zones[z].slots[s];
+    if(slot.machine){
+      el.draggable = true;
+      el.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', JSON.stringify({source:'slot', z, s, sub:-1, machineId: slot.machine}));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+    }
+  } else {
+    const slot = state.zones[z].slots[s];
+    const id = slot.sub[sub];
+    if(id){
+      el.draggable = true;
+      el.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', JSON.stringify({source:'slot', z, s, sub, machineId: id}));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+    }
+    el.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      if(slot.sub[sub]){ slot.sub[sub] = null; clearSuggestions(); render(); }
+    });
+  }
+}
+
+function handleDrop(data, target, el){
+  const m = machineById(data.machineId);
+  if(!m) return;
+  if(m.size !== target.shape){
+    el.classList.add('bad');
+    setTimeout(()=>el.classList.remove('bad'), 400);
+    if(typeof SFX !== 'undefined') SFX.bad();
+    return;
+  }
+  if(data.source === 'palette' && availableCount(m.id) <= 0){
+    el.classList.add('bad');
+    setTimeout(()=>el.classList.remove('bad'), 400);
+    flashSuggestion(T('noInInventory', m.name));
+    if(typeof SFX !== 'undefined') SFX.bad();
+    return;
+  }
+  // If target already occupied → swap (only for slot-source) or reject (for palette)
+  const targetExisting = getSlotMachine(target.z, target.s, target.sub);
+  if(targetExisting){
+    if(data.source !== 'slot'){
+      el.classList.add('bad');
+      setTimeout(()=>el.classList.remove('bad'), 400);
+      if(typeof SFX !== 'undefined') SFX.bad();
+      return;
+    }
+    // Swap
+    setSlotMachine(target.z, target.s, target.sub, data.machineId);
+    setSlotMachine(data.z, data.s, data.sub, targetExisting);
+  } else {
+    setSlotMachine(target.z, target.s, target.sub, data.machineId);
+    if(data.source === 'slot'){
+      setSlotMachine(data.z, data.s, data.sub, null);
+    }
+  }
+  const beforeIncome = totals().income;
+  clearSuggestions();
+  render();
+  const afterIncome = totals().income;
+  // Sound + particle burst + income float
+  if(typeof SFX !== 'undefined') SFX.drop();
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  if(typeof burstAt === 'function') burstAt(cx, cy, m.size);
+  const gain = afterIncome - beforeIncome;
+  if(gain !== 0 && typeof floatGainAt === 'function'){
+    floatGainAt(cx, cy - 18, (gain>0?'+':'') + fmt(gain) + '/s');
+  }
+  queueMicrotask(() => {
+    const sel = target.sub === -1
+      ? `.zone:nth-child(${target.z+1}) .slot[data-slot="${target.s}"]`
+      : `.zone:nth-child(${target.z+1}) .slot[data-slot="${target.s}"] .sub[data-sub="${target.sub}"]`;
+    const node = document.querySelector(sel);
+    if(node){ node.classList.add('pop'); setTimeout(()=>node.classList.remove('pop'), 200); }
+  });
+}
+
+// ============ HOVER KEYS ============
+let hoveredM = null;
+let hoveredChip = null;
+window.addEventListener('keydown', e => {
+  const tag = (e.target && e.target.tagName) || '';
+  if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  const k = e.key.toLowerCase();
+  // C: split/merge M slot
+  if(k === 'c' && hoveredM){
+    const slot = state.zones[hoveredM.z].slots[hoveredM.s];
+    if(slot.shape !== 'M') return;
+    if(!slot.split){
+      if(slot.machine) return;
+      slot.split = true;
+      slot.sub = [null, null];
+    } else {
+      if(slot.sub[0] || slot.sub[1]) return;
+      slot.split = false;
+    }
+    clearSuggestions();
+    render();
+    return;
+  }
+  // W/S: reorder chip in catalog
+  if((k === 'w' || k === 's') && hoveredChip){
+    const idx = state.catalog.findIndex(c => c.id === hoveredChip);
+    if(idx < 0) return;
+    const target = k === 'w' ? idx - 1 : idx + 1;
+    if(target < 0 || target >= state.catalog.length) return;
+    [state.catalog[idx], state.catalog[target]] = [state.catalog[target], state.catalog[idx]];
+    render();
+    return;
+  }
+});
+
+// ============ HEADER INPUTS ============
+document.getElementById('money').addEventListener('change', e => { state.money = parseNum(e.target.value); render(); });
+document.getElementById('gas').addEventListener('change', e => { state.gas = parseNum(e.target.value); render(); });
+document.getElementById('sellPrice').addEventListener('input', e => { state.sellPrice = parseFloat(e.target.value)||0; render(); });
+document.getElementById('bonus').addEventListener('input', e => { state.bonus = parseFloat(e.target.value)||0; render(); });
+document.getElementById('btnSave').onclick = () => { saveState(); flashSuggestion(T('saved')); };
+
+document.getElementById('btnShare').onclick = async () => {
+  saveState();
+  let html = null;
+  try{
+    const res = await fetch(location.href);
+    if(res.ok) html = await res.text();
+  }catch(e){}
+  if(!html){
+    // file:// fallback: serialize current DOM (palette/zones get rebuilt by render() on open, so static markup is fine).
+    html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  }
+  const json = JSON.stringify(state);
+  const replacement = '<script id="embeddedState">window.__EMBEDDED_STATE__ = ' + json.replace(/</g,'\\u003c') + ';<\/script>';
+  const re = /<script id="embeddedState">[\s\S]*?<\/script>/;
+  if(re.test(html)){
+    html = html.replace(re, replacement);
+  } else {
+    html = html.replace(/<script>\s*"use strict";/, replacement + '\n<script>\n"use strict";');
+  }
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const base = (location.pathname.split(/[\\/]/).pop() || 'oil calculator.html').replace(/\.html?$/i,'');
+  a.download = base + ' (shared).html';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  flashSuggestion(T('shareDone'));
+};
+
+// Yerleştirilmiş tüm makineleri sök → envantere "kullanılabilir" olarak dön.
+document.getElementById('btnCollect').onclick = () => {
+  let n = 0;
+  for(const it of iterSlots()){
+    if(it.machine){ setSlotMachine(it.zoneIdx, it.slotIdx, it.subIdx, null); n++; }
+  }
+  // Bölünmüş M slotları da birleştir (boşaldıkları için)
+  for(const zone of state.zones){
+    for(const slot of zone.slots){
+      if(slot.shape === 'M' && slot.split && !slot.sub[0] && !slot.sub[1]){
+        slot.split = false;
+      }
+    }
+  }
+  clearSuggestions();
+  flashSuggestion(T('collected', n));
+  render();
+};
+
+// Sayfayı sıfırla, sadece kayıtlı makine tipleri (catalog) kalsın.
+document.getElementById('btnWipe').onclick = () => {
+  if(!confirm(T('confirmReset'))) return;
+  const keptCatalog = state.catalog;
+  state = makeFreshState();
+  state.catalog = keptCatalog;
+  state.inventory = {};
+  clearSuggestions();
+  render();
+};
+
+// ============ MACHINE DIALOG ============
+let editingMachineId = null;
+function openMachineDialog(id){
+  editingMachineId = id || null;
+  const m = id ? machineById(id) : null;
+  document.getElementById('dlgTitle').textContent = id ? T('editMachine') : T('addMachine');
+  document.getElementById('mName').value = m?.name || '';
+  document.getElementById('mCost').value = m ? fmt(m.cost) : '';
+  document.getElementById('mRate').value = m?.rate || '';
+  document.querySelectorAll('input[name=mSize]').forEach(r => r.checked = (m ? r.value === m.size : r.value === 'S'));
+  document.getElementById('mDelete').style.display = id ? '' : 'none';
+  document.getElementById('dlgMachine').showModal();
+}
+document.getElementById('btnAddMachine').onclick = () => openMachineDialog(null);
+document.getElementById('mCancel').onclick = () => document.getElementById('dlgMachine').close();
+document.getElementById('mSave').onclick = (e) => {
+  e.preventDefault();
+  const name = document.getElementById('mName').value.trim() || 'Makine';
+  const cost = parseNum(document.getElementById('mCost').value);
+  const rate = parseFloat(document.getElementById('mRate').value)||0;
+  const size = document.querySelector('input[name=mSize]:checked')?.value || 'S';
+  if(editingMachineId){
+    const m = machineById(editingMachineId);
+    Object.assign(m, {name, cost, rate, size});
+  } else {
+    state.catalog.push({id:'m'+Date.now(), name, cost, rate, size});
+  }
+  document.getElementById('dlgMachine').close();
+  clearSuggestions();
+  render();
+};
+document.getElementById('mDelete').onclick = (e) => {
+  e.preventDefault();
+  if(!editingMachineId) return;
+  if(!confirm(T('confirmDelete'))) return;
+  // Clear placements
+  for(const it of iterSlots()){
+    if(it.machine === editingMachineId){
+      setSlotMachine(it.zoneIdx, it.slotIdx, it.subIdx, null);
+    }
+  }
+  state.catalog = state.catalog.filter(m => m.id !== editingMachineId);
+  delete state.inventory[editingMachineId];
+  document.getElementById('dlgMachine').close();
+  clearSuggestions();
+  render();
+};
+
+// ============ SUGGESTIONS ============
+function clearSuggestions(){
+  document.querySelectorAll('.slot.best, .sub.best').forEach(e => e.classList.remove('best'));
+  document.getElementById('suggestion').className = 'suggest empty';
+  document.getElementById('suggestion').textContent = T('noSuggestion');
+  document.getElementById('moves').innerHTML = '';
+}
+function flashSuggestion(text){
+  const el = document.getElementById('suggestion');
+  el.className = 'suggest';
+  el.textContent = text;
+}
+function highlightSlot(z, s, sub){
+  const sel = sub === -1
+    ? `.zone:nth-child(${z+1}) .slot[data-slot="${s}"]`
+    : `.zone:nth-child(${z+1}) .slot[data-slot="${s}"] .sub[data-sub="${sub}"]`;
+  document.querySelectorAll(sel).forEach(el => el.classList.add('best'));
+}
+
+// All candidate "place" moves (only into empty slots, machine size == slot shape)
+function enumeratePlaceMoves(){
+  const moves = [];
+  for(const it of iterSlots({skipDisabled:true})){
+    if(it.machine) continue;
+    for(const m of state.catalog){
+      if(m.size !== it.shape) continue;
+      if(!(m.cost > 0)) continue; // 0 fiyatlı makineler "satın al" hesabına girmez
+      const mult = state.zones[it.zoneIdx].mult;
+      const inc = slotIncome(m.id, mult);
+      if(inc <= 0) continue;
+      moves.push({
+        kind:'place', cost: m.cost, delta: inc,
+        roi: m.cost / inc,
+        machineId: m.id,
+        z: it.zoneIdx, s: it.slotIdx, sub: it.subIdx,
+        desc: `${m.name} → Bölge ${it.zoneIdx+1} (${mult}×, ${it.shape})`
+      });
+    }
+  }
+  return moves;
+}
+// Upgrade moves: replace a machine with a higher-rate one of same size in same slot
+function enumerateUpgradeMoves(){
+  const moves = [];
+  for(const it of iterSlots({skipDisabled:true})){
+    if(!it.machine) continue;
+    const cur = machineById(it.machine);
+    if(!cur) continue;
+    const mult = state.zones[it.zoneIdx].mult;
+    const curInc = slotIncome(cur.id, mult);
+    for(const m of state.catalog){
+      if(m.id === cur.id) continue;
+      if(m.size !== cur.size) continue;
+      if(!(m.cost > 0)) continue;
+      if(m.rate <= cur.rate) continue;
+      const newInc = slotIncome(m.id, mult);
+      const delta = newInc - curInc;
+      if(delta <= 0) continue;
+      moves.push({
+        kind:'upgrade', cost: m.cost, delta, roi: m.cost / delta,
+        machineId: m.id, fromMachineId: cur.id,
+        z: it.zoneIdx, s: it.slotIdx, sub: it.subIdx,
+        desc: `${cur.name} → ${m.name} (Bölge ${it.zoneIdx+1}, ${mult}×)`
+      });
+    }
+  }
+  return moves;
+}
+// Move (relocate) moves: shifting a machine to a higher-mult empty slot
+function enumerateRelocations(){
+  const moves = [];
+  const filled = [];
+  const empty = [];
+  for(const it of iterSlots({skipDisabled:true})){
+    if(it.machine) filled.push(it); else empty.push(it);
+  }
+  for(const f of filled){
+    const m = machineById(f.machine);
+    if(!m) continue;
+    const fromMult = state.zones[f.zoneIdx].mult;
+    for(const e of empty){
+      if(e.shape !== m.size) continue;
+      const toMult = state.zones[e.zoneIdx].mult;
+      if(toMult <= fromMult) continue;
+      const delta = slotIncome(m.id, toMult) - slotIncome(m.id, fromMult);
+      if(delta <= 0) continue;
+      moves.push({
+        kind:'relocate', cost:0, delta, roi:0,
+        machineId: m.id,
+        from:{z:f.zoneIdx, s:f.slotIdx, sub:f.subIdx},
+        to:{z:e.zoneIdx, s:e.slotIdx, sub:e.subIdx},
+        desc: `${m.name} taşı: Bölge ${f.zoneIdx+1} (${fromMult}×) → Bölge ${e.zoneIdx+1} (${toMult}×)`
+      });
+    }
+  }
+  return moves;
+}
+
+// Saf yerleşim simülasyonu: simZones'u modifiye eder; mevcut state.inventory + extraInventory
+// kombinasyonunu rate-desc / mult-desc eşleyerek dağıtır. Toplam gelir/rate döner.
+// state ve gerçek DOM hiç değişmez.
+function autoPlaceOn(simZones, extraInventory){
+  const inv = {};
+  for(const m of state.catalog) inv[m.id] = (state.inventory[m.id]||0);
+  if(extraInventory){
+    for(const id in extraInventory) inv[id] = (inv[id]||0) + extraInventory[id];
+  }
+  for(let z=0; z<simZones.length; z++){
+    for(let s=0; s<simZones[z].slots.length; s++){
+      const slot = simZones[z].slots[s];
+      slot.machine = null;
+      if(slot.split) slot.sub = [null, null];
+    }
+  }
+  const bySize = {L:[], M:[], S:[]};
+  for(const m of state.catalog){
+    const owned = inv[m.id]||0;
+    for(let i=0;i<owned;i++) bySize[m.size].push(m.id);
+  }
+  for(const k of ['L','M','S']) bySize[k].sort((a,b)=> machineById(b).rate - machineById(a).rate);
+  const dest = {L:[], M:[], S:[]};
+  for(let z=0; z<simZones.length; z++){
+    if(simZones[z].disabled) continue;
+    for(let s=0; s<simZones[z].slots.length; s++){
+      const slot = simZones[z].slots[s];
+      if(slot.shape==='M' && slot.split){
+        for(let i=0;i<2;i++) dest.S.push({z,s,sub:i,mult:simZones[z].mult});
+      } else {
+        dest[slot.shape].push({z,s,sub:-1,mult:simZones[z].mult});
+      }
+    }
+  }
+  for(const k of ['L','M','S']) dest[k].sort((a,b)=> b.mult - a.mult);
+  let placed = 0;
+  const leftover = {};
+  for(const k of ['L','M','S']){
+    const ms = bySize[k], ds = dest[k];
+    for(let i=0;i<ms.length;i++){
+      if(i < ds.length){
+        const d = ds[i];
+        const slot = simZones[d.z].slots[d.s];
+        if(d.sub===-1) slot.machine = ms[i]; else slot.sub[d.sub] = ms[i];
+        placed++;
+      } else {
+        leftover[ms[i]] = (leftover[ms[i]]||0) + 1;
+      }
+    }
+  }
+  let income = 0, rate = 0;
+  for(let z=0; z<simZones.length; z++){
+    if(simZones[z].disabled) continue;
+    const mult = simZones[z].mult;
+    for(let s=0; s<simZones[z].slots.length; s++){
+      const slot = simZones[z].slots[s];
+      if(slot.shape==='M' && slot.split){
+        for(let i=0;i<2;i++) if(slot.sub[i]){ income += slotIncome(slot.sub[i], mult); rate += slotRate(slot.sub[i], mult); }
+      } else if(slot.machine){
+        income += slotIncome(slot.machine, mult); rate += slotRate(slot.machine, mult);
+      }
+    }
+  }
+  return {placed, leftover, income, rate};
+}
+
+// ============ INVESTMENT SUGGESTION ============
+function buildStrategies(budget){
+  const cur = totals();
+  const currentIncome = cur.income;
+  // Idle oyun horizon: 24 saat. Spend-only stratejilerde bu sabit kullanılır;
+  // wait stratejilerinde (H - waitTime) ile cezalandırılır. Yüksek Δgelir baskın olsun
+  // diye `spent` terimi formülden çıkarıldı — bütçe içindeki tüm seçenekler zaten
+  // karşılanabilir, kullanıcının sorduğu soru "hangisi daha çok gelir getirir?"
+  const H = 86400;
+  const strategies = [];
+
+  // S1: her makine türü için "bütçeyi yalnızca buna yatır"
+  for(const m of state.catalog){
+    if(!(m.cost > 0)) continue;
+    const qty = Math.floor(budget / m.cost);
+    if(qty <= 0) continue;
+    const spent = qty * m.cost;
+    const sim = JSON.parse(JSON.stringify(state.zones));
+    const r = autoPlaceOn(sim, {[m.id]: qty});
+    const delta = r.income - currentIncome;
+    if(delta <= 0) continue;
+    const placedNow = countPlacedOfMachine(sim, m.id);
+    const score = delta * H;
+    strategies.push({
+      kind:'spend', score, spent, delta,
+      payback: spent / delta,
+      placedOfNew: Math.min(placedNow, qty),
+      qtyBought: qty,
+      buys: [{id:m.id, qty}],
+      headline: T('buyN', qty, m.name),
+      detail: T('detailBuy', qty, m.name, fmt(spent)) + (qty>placedNow ? T('noRoomDetail', qty-placedNow) : ''),
+    });
+  }
+
+  // S2: "biriktir & üst tier" — bütçe yetmeyen her makine için tek hamle
+  if(currentIncome > 0){
+    for(const m of state.catalog){
+      if(!(m.cost > 0)) continue;
+      if(m.cost <= budget) continue;
+      const need = m.cost - budget;
+      const waitTime = need / currentIncome;
+      // Çok uzun beklemeyi reddet (24 saatten fazla bekleme önerme)
+      if(waitTime > H) continue;
+      const sim = JSON.parse(JSON.stringify(state.zones));
+      const r = autoPlaceOn(sim, {[m.id]: 1});
+      const delta = r.income - currentIncome;
+      if(delta <= 0) continue;
+      const score = delta * Math.max(60, H - waitTime);
+      if(score <= 0) continue;
+      strategies.push({
+        kind:'wait', score,
+        spent: m.cost, delta,
+        payback: m.cost / delta,
+        waitTime,
+        placedOfNew: countPlacedOfMachine(sim, m.id),
+        qtyBought: 1,
+        buys: [{id:m.id, qty:1}],
+        headline: T('waitN', 1, m.name),
+        detail: T('detailWait', fmtTime(waitTime), fmt(currentIncome), fmt(need), 1, m.name, fmt(m.cost)),
+      });
+    }
+  }
+  return {strategies, currentIncome};
+}
+function countPlacedOfMachine(simZones, id){
+  let n = 0;
+  for(let z=0;z<simZones.length;z++){
+    if(simZones[z].disabled) continue;
+    for(const slot of simZones[z].slots){
+      if(slot.shape==='M' && slot.split){
+        for(let i=0;i<2;i++) if(slot.sub[i]===id) n++;
+      } else if(slot.machine===id) n++;
+    }
+  }
+  return n;
+}
+
+document.getElementById('btnInvest').onclick = () => {
+  clearSuggestions();
+  const budget = parseNum(document.getElementById('budget').value);
+  if(!budget){ flashSuggestion(T('enterBudget')); return; }
+  const {strategies, currentIncome} = buildStrategies(budget);
+  if(!strategies.length){
+    flashSuggestion(T('noInvestFound'));
+    return;
+  }
+  strategies.sort((a,b)=> b.score - a.score || a.payback - b.payback);
+  const winner = strategies[0];
+  if(winner.kind === 'wait'){
+    flashSuggestion(T('sgWaitHeader', fmtTime(winner.waitTime), winner.headline, fmt(winner.delta), fmtTime(winner.payback)));
+  } else {
+    const extra = winner.qtyBought>winner.placedOfNew ? T('noRoomTail', winner.qtyBought-winner.placedOfNew) : '';
+    flashSuggestion(T('sgSpendHeader', winner.headline, fmt(winner.spent), fmt(winner.delta), fmtTime(winner.payback), extra));
+  }
+  // En iyi 3 stratejiyi listele
+  const moves = document.getElementById('moves');
+  moves.innerHTML = strategies.slice(0,3).map((s, i) => {
+    const tag = i === 0 ? 'strategy-head' : (s.kind === 'wait' ? 'wait-banner' : '');
+    const prefix = i === 0 ? '🏆 ' : (s.kind === 'wait' ? '⏳ ' : `${i+1}. `);
+    return `<div class="mv ${tag}">${prefix}${s.detail} · +${fmt(s.delta)}/s</div>`;
+  }).join('');
+  SFX.success();
+};
+
+document.getElementById('btnAuto').onclick = () => {
+  clearSuggestions();
+  const sim = state.zones.map(z => ({...z, slots: z.slots.map(s => ({...s, sub:[...s.sub]}))}));
+  const r = autoPlaceOn(sim, null);
+  // Uygula
+  for(let z=0; z<state.zones.length; z++){
+    for(let s=0; s<state.zones[z].slots.length; s++){
+      const orig = state.zones[z].slots[s];
+      const simSlot = sim[z].slots[s];
+      orig.machine = simSlot.machine;
+      orig.sub = [...simSlot.sub];
+    }
+  }
+  const leftoverCount = Object.values(r.leftover).reduce((a,b)=>a+b,0);
+  flashSuggestion(T('autoMsg', r.placed, leftoverCount));
+  render();
+  SFX.success();
+};
+
+// ============ COMPARATOR ============
+const cmpRowsEl = document.getElementById('cmpRows');
+let cmpRowCounter = 0;
+function addCmpRow(presetId, presetQty){
+  const id = ++cmpRowCounter;
+  const row = document.createElement('div');
+  row.className = 'cmp-row';
+  row.dataset.id = id;
+  row.innerHTML = `
+    <select class="cmp-mach">${state.catalog.map(m=>`<option value="${m.id}">${m.name} (${fmt(m.cost)})</option>`).join('')}</select>
+    <input class="cmp-qty" type="number" min="1" value="${presetQty||1}">
+    <button class="rm" title="${T('delete')}">×</button>
+  `;
+  if(presetId) row.querySelector('.cmp-mach').value = presetId;
+  row.querySelector('.rm').onclick = () => row.remove();
+  cmpRowsEl.appendChild(row);
+}
+function refreshCmpOptions(){
+  // Katalog değişirse mevcut row'lardaki select'leri yeniden doldur
+  cmpRowsEl.querySelectorAll('.cmp-row').forEach(row => {
+    const sel = row.querySelector('.cmp-mach');
+    const cur = sel.value;
+    sel.innerHTML = state.catalog.map(m=>`<option value="${m.id}">${m.name} (${fmt(m.cost)})</option>`).join('');
+    if(state.catalog.find(m=>m.id===cur)) sel.value = cur;
+  });
+}
+document.getElementById('cmpAddRow').onclick = () => addCmpRow();
+document.getElementById('cmpRun').onclick = () => {
+  const rows = [...cmpRowsEl.querySelectorAll('.cmp-row')];
+  const scenarios = rows.map(r => ({
+    id: r.querySelector('.cmp-mach').value,
+    qty: Math.max(1, parseInt(r.querySelector('.cmp-qty').value)||1),
+  })).filter(s => machineById(s.id));
+  const out = document.getElementById('cmpResult');
+  if(scenarios.length < 2){ out.innerHTML = `<div class="legend" style="color:var(--bad)">${T('compareMin')}</div>`; return; }
+  const curIncome = totals().income;
+  const results = scenarios.map(s => {
+    const m = machineById(s.id);
+    const sim = JSON.parse(JSON.stringify(state.zones));
+    const r = autoPlaceOn(sim, {[s.id]: s.qty});
+    const placedOfNew = countPlacedOfMachine(sim, s.id);
+    const delta = r.income - curIncome;
+    const cost = m.cost * s.qty;
+    return {
+      id:s.id, name:m.name, qty:s.qty,
+      cost, delta, placedOfNew,
+      payback: delta>0 ? cost/delta : Infinity,
+    };
+  });
+  // Kazanan: en büyük delta
+  let winIdx = 0;
+  for(let i=1;i<results.length;i++) if(results[i].delta > results[winIdx].delta) winIdx = i;
+  out.innerHTML = results.map((r, i) => `
+    <div class="cmp-result-row ${i===winIdx?'winner':''}">
+      <div class="name">${i===winIdx?'🏆 ':''}${r.qty}× ${r.name}${i===winIdx?' — '+T('winner'):''}</div>
+      <div class="stats">${T('cmpCost')}: <b>${fmt(r.cost)}</b> · ${T('cmpDelta')}: <b>+${fmt(r.delta)}/s</b> · ${T('cmpPayback')}: <b>${fmtTime(r.payback)}</b></div>
+      <div class="stats">${T('cmpPlacement')}: ${r.placedOfNew}/${r.qty}${r.placedOfNew<r.qty?` <span class="warn">${T('cmpNoRoom', r.qty-r.placedOfNew)}</span>`:''}</div>
+    </div>
+  `).join('');
+  SFX.success();
+};
+
+// ============ CALCULATOR ============
+function renderCalculator(){
+  const sel = document.getElementById('targetMachine');
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">— ${T('pickMachine')} —</option>` + state.catalog.map(m =>
+    `<option value="${m.id}">${m.name} (${fmt(m.cost)})</option>`
+  ).join('');
+  if(cur && state.catalog.find(m=>m.id===cur)) sel.value = cur;
+  else sel.value = '';
+  updateAfford();
+}
+function updateAfford(){
+  const id = document.getElementById('targetMachine').value;
+  const qty = Math.max(1, parseInt(document.getElementById('targetQty').value)||1);
+  const card = document.getElementById('affordResult');
+  const m = machineById(id);
+  if(!m){
+    card.className = 'afford-card';
+    card.innerHTML = `<div class="big">—<span class="unit">${T('noChoice')}</span></div><div class="sub">${T('pickMachine')}</div>`;
+    return;
+  }
+  const need = m.cost * qty;
+  const have = state.money;
+  const t = totals();
+  const remaining = need - have;
+  if(remaining <= 0){
+    card.className = 'afford-card ready';
+    card.innerHTML = `
+      <div class="big">${T('ready')}<span class="badge">${T('readyBadge')}</span></div>
+      <div class="sub">${qty}× ${m.name} · ${T('needLabel')} <b>${fmt(need)}</b> · ${T('haveLabel')} <b>${fmt(have)}</b></div>
+    `;
+  } else if(t.income <= 0){
+    card.className = 'afford-card';
+    card.innerHTML = `
+      <div class="big">∞<span class="unit">${T('timeUnit')}</span></div>
+      <div class="sub">${qty}× ${m.name} · ${T('missingLabel')} <b>${fmt(remaining)}</b> · ${T('incomeLabel')} 0/s</div>
+    `;
+  } else {
+    const sec = remaining / t.income;
+    card.className = 'afford-card';
+    card.innerHTML = `
+      <div class="big">${fmtTime(sec)}<span class="unit">${T('paybackUnit')}</span></div>
+      <div class="sub">${qty}× ${m.name} · ${T('missingLabel')} <b>${fmt(remaining)}</b> · ${fmt(t.income)}/s ${T('incomeLabel')}</div>
+    `;
+  }
+}
+document.getElementById('targetMachine').onchange = updateAfford;
+document.getElementById('targetQty').oninput = updateAfford;
+
+// 3-way calculator (benzin <-> para <-> süre)
+const cBenzin = document.getElementById('cBenzin');
+const cPara   = document.getElementById('cPara');
+const cSure   = document.getElementById('cSure');
+const cOut    = document.getElementById('calcOut');
+let cLastEdited = null;
+function gasToMoney(g){ return g * state.sellPrice * (1 + state.bonus); }
+function moneyToGas(m){ const k = state.sellPrice * (1 + state.bonus); return k>0 ? m/k : 0; }
+function recalc3way(){
+  const t = totals();
+  if(!cLastEdited) return;
+  let g=0, money=0, sec=0, srcLabel='';
+  if(cLastEdited === 'cBenzin'){
+    g = parseNum(cBenzin.value);
+    money = gasToMoney(g);
+    sec = t.rate>0 ? g / t.rate : Infinity;
+    srcLabel = `${fmt(g)} ${state.lang==='tr'?'benzin':'gas'}`;
+  } else if(cLastEdited === 'cPara'){
+    money = parseNum(cPara.value);
+    g = moneyToGas(money);
+    sec = t.rate>0 ? g / t.rate : Infinity;
+    srcLabel = `${fmt(money)} ${state.lang==='tr'?'para':'money'}`;
+  } else if(cLastEdited === 'cSure'){
+    sec = parseTime(cSure.value);
+    g = sec * t.rate;
+    money = gasToMoney(g);
+    srcLabel = `${fmtTime(sec)}`;
+  }
+  // Yalnızca cLastEdited dışındakileri yaz (kullanıcı yazarken silmesin)
+  if(cLastEdited !== 'cBenzin') cBenzin.value = g>0 ? fmt(g) : '';
+  if(cLastEdited !== 'cPara')   cPara.value   = money>0 ? fmt(money) : '';
+  if(cLastEdited !== 'cSure')   cSure.value   = (isFinite(sec) && sec>0) ? fmtTime(sec) : '';
+  // Result line
+  if(g>0 || money>0 || (isFinite(sec)&&sec>0)){
+    let msg = T('twoWayLine', srcLabel, fmt(g), fmt(money));
+    if(t.rate>0) msg += T('twoWayWithRate', fmt(t.rate), fmtTime(sec));
+    else msg += T('twoWayNoRate');
+    cOut.textContent = msg;
+  } else {
+    cOut.textContent = T('twoWayHint');
+  }
+}
+['cBenzin','cPara','cSure'].forEach(id => {
+  const el = document.getElementById(id);
+  const onEdit = () => { cLastEdited = id; recalc3way(); };
+  el.addEventListener('input',  onEdit);
+  el.addEventListener('change', onEdit);
+  // Tıklayınca tüm içeriği seç (önceden auto-fill edilen değer kolayca silinsin)
+  el.addEventListener('focus', () => el.select());
+});
+
+// ============ SOUND + EFFECTS ============
+const audioCtx = (typeof window !== 'undefined') ? new (window.AudioContext||window.webkitAudioContext)() : null;
+function beep(freq=440, dur=0.08, type='sine', vol=0.07){
+  if(!audioCtx || state.muted) return;
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.value = vol;
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+  o.connect(g).connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+const SFX = {
+  click:   () => beep(660, 0.04, 'square', 0.04),
+  drop:    () => { beep(520,0.05,'triangle',0.08); setTimeout(()=>beep(780,0.06,'triangle',0.07),40); },
+  pickup:  () => beep(880, 0.05, 'triangle', 0.06),
+  bad:     () => beep(180, 0.18, 'sawtooth', 0.08),
+  success: () => { beep(660,0.06,'sine',0.07); setTimeout(()=>beep(990,0.1,'sine',0.07),60); },
+  toggle:  () => beep(420, 0.05, 'sine', 0.05),
+};
+document.addEventListener('pointerdown', () => {
+  if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}, {once:true});
+
+// Mute button
+function updateMuteIcon(){
+  document.getElementById('btnMute').textContent = state.muted ? '🔇' : '🔊';
+}
+document.getElementById('btnMute').onclick = () => {
+  state.muted = !state.muted;
+  updateMuteIcon();
+  saveState();
+  if(!state.muted) SFX.click();
+};
+updateMuteIcon();
+
+// Language button
+function updateLangIcon(){
+  document.getElementById('btnLang').textContent = state.lang==='tr' ? '🇹🇷' : '🇺🇸';
+}
+document.getElementById('btnLang').onclick = () => {
+  state.lang = state.lang==='en' ? 'tr' : 'en';
+  updateLangIcon();
+  applyI18n();
+  render();
+  SFX.click();
+};
+updateLangIcon();
+applyI18n();
+
+// Buton ripple efekti — sadece .primary/.ghost/.danger
+document.addEventListener('click', e => {
+  const btn = e.target.closest('button.primary, button.ghost, button.danger');
+  if(!btn) return;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 1.5;
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  r.style.width = r.style.height = size + 'px';
+  r.style.left = (e.clientX - rect.left - size/2) + 'px';
+  r.style.top  = (e.clientY - rect.top  - size/2) + 'px';
+  btn.appendChild(r);
+  setTimeout(()=> r.remove(), 500);
+});
+
+// Buton click sesleri (delege)
+document.addEventListener('click', e => {
+  if(e.target.closest('button.primary, button.ghost, button.danger, .chip button, #btnMute, .cmp-row .rm, #cmpAddRow')){
+    SFX.click();
+  }
+});
+
+// Drop sırasında parçacık patlaması
+function burstAt(x, y, sizeClass){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for(let i=0;i<6;i++){
+    const p = document.createElement('div');
+    p.className = 'particle ' + (sizeClass||'L');
+    const angle = (i / 6) * Math.PI * 2;
+    const dist = 24 + Math.random() * 18;
+    p.style.setProperty('--dx', Math.cos(angle)*dist + 'px');
+    p.style.setProperty('--dy', Math.sin(angle)*dist + 'px');
+    p.style.left = (x - 4) + 'px';
+    p.style.top  = (y - 4) + 'px';
+    document.body.appendChild(p);
+    setTimeout(()=> p.remove(), 600);
+  }
+}
+function floatGainAt(x, y, text){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const el = document.createElement('div');
+  el.className = 'float-gain';
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=> el.remove(), 1000);
+}
+
+// Palette dragstart için pickup ses delegasyonu
+document.getElementById('palette').addEventListener('dragstart', () => SFX.pickup(), true);
+// Zone toggle ses
+document.getElementById('zones').addEventListener('click', (e) => {
+  if(e.target.closest('.toggle')) SFX.toggle();
+});
+
+// ============ INIT ============
+addCmpRow();
+addCmpRow();
+render();
+</script>
+
+
+</body></html>
