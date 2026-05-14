@@ -1916,7 +1916,6 @@ document.getElementById('btnInvest').onclick = () => {
     const prefix = i === 0 ? '🏆 ' : (s.kind === 'wait' ? '⏳ ' : `${i+1}. `);
     return `<div class="mv ${tag}">${prefix}${s.detail} · +${fmt(s.delta)}/s</div>`;
   }).join('');
-  SFX.success();
 };
 
 document.getElementById('btnAuto').onclick = () => {
@@ -1935,7 +1934,6 @@ document.getElementById('btnAuto').onclick = () => {
   const leftoverCount = Object.values(r.leftover).reduce((a,b)=>a+b,0);
   flashSuggestion(T('autoMsg', r.placed, leftoverCount));
   render();
-  SFX.success();
 };
 
 // ============ COMPARATOR ============
@@ -1997,7 +1995,6 @@ document.getElementById('cmpRun').onclick = () => {
       <div class="stats">${T('cmpPlacement')}: ${r.placedOfNew}/${r.qty}${r.placedOfNew<r.qty?` <span class="warn">${T('cmpNoRoom', r.qty-r.placedOfNew)}</span>`:''}</div>
     </div>
   `).join('');
-  SFX.success();
 };
 
 // ============ CALCULATOR ============
@@ -2126,13 +2123,14 @@ function playSfx(name){
   node.volume = src.volume;
   node.play().catch(()=>{ /* autoplay blocked or load failed - ignore silently */ });
 }
+// All UI events use the same satisfying "drop" sound for consistency.
 const SFX = {
-  click:   () => playSfx('click'),
+  click:   () => playSfx('drop'),
   drop:    () => playSfx('drop'),
-  pickup:  () => playSfx('pickup'),
-  bad:     () => playSfx('bad'),
-  success: () => playSfx('success'),
-  toggle:  () => playSfx('toggle'),
+  pickup:  () => playSfx('drop'),
+  bad:     () => playSfx('drop'),
+  success: () => playSfx('drop'),
+  toggle:  () => playSfx('drop'),
 };
 // First pointerdown unlocks audio on browsers that block autoplay until interaction.
 document.addEventListener('pointerdown', () => {
@@ -2151,7 +2149,6 @@ document.getElementById('btnMute').onclick = () => {
   state.muted = !state.muted;
   updateMuteIcon();
   saveState();
-  if(!state.muted) SFX.click();
 };
 updateMuteIcon();
 
@@ -2164,7 +2161,6 @@ document.getElementById('btnLang').onclick = () => {
   updateLangIcon();
   applyI18n();
   render();
-  SFX.click();
 };
 updateLangIcon();
 applyI18n();
@@ -2196,11 +2192,9 @@ document.addEventListener('click', e => {
   setTimeout(()=> r.remove(), 500);
 });
 
-// Buton click sesleri (delege)
+// Global click sound: any button anywhere plays exactly one sound.
 document.addEventListener('click', e => {
-  if(e.target.closest('button.primary, button.ghost, button.danger, .chip button, #btnMute, .cmp-row .rm, #cmpAddRow')){
-    SFX.click();
-  }
+  if(e.target.closest('button')) SFX.click();
 });
 
 // Particle burst on drop
@@ -2230,12 +2224,8 @@ function floatGainAt(x, y, text){
   setTimeout(()=> el.remove(), 1000);
 }
 
-// Pickup sound delegation for palette dragstart
-document.getElementById('palette').addEventListener('dragstart', () => SFX.pickup(), true);
-// Zone toggle ses
-document.getElementById('zones').addEventListener('click', (e) => {
-  if(e.target.closest('.toggle')) SFX.toggle();
-});
+// (Pickup and zone-toggle sounds removed: every button now plays one sound via the global click handler;
+// dragging a drill stays silent so only the actual placement makes the satisfying drop sound.)
 
 // ============ INIT ============
 addCmpRow();
