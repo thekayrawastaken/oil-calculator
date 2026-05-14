@@ -523,7 +523,7 @@
 
     <h3 style="margin-top:14px" data-i18n="machineCalc">Machine Calculator</h3>
     <div class="row">
-      <select id="targetMachine"><option value="">- Choose a machine -</option><option value="m1778447750139">Mini Ruby (0)</option><option value="m1778447701933">Mini Diamond (0)</option><option value="m1778447765648">Quantum (0)</option><option value="m1778449160005">Crystal (9.00B)</option><option value="m1778448934122">Diamond (27.50B)</option><option value="m1778448911681">Ruby (85.50B)</option><option value="m1778447536933">Fusion (137.50B)</option><option value="m1778445752408">Uranium (437.50B)</option><option value="m1778447554327">Radium (810.00B)</option><option value="m1778447614796">Palladium (1.20T)</option><option value="m1778447627842">Thorium (2.10T)</option></select>
+      <select id="targetMachine"><option value="">- Choose a machine -</option></select>
       <input id="targetQty" type="number" value="1" min="1" style="width:60px;flex:0">
     </div>
     <div id="affordResult" class="afford-card"><div class="big">-<span class="unit">No machine chosen</span></div><div class="sub">Choose a machine</div></div>
@@ -822,23 +822,23 @@ const SLOT_SHAPES = ['L','M','L','M','S','M','L','M','L'];
 const STORAGE_KEY = 'idle-optimizer-v1';
 
 const DEFAULT_MACHINES = [
-  {id:'mini_ruby',    name:'Mini Ruby',         cost:0,             rate:67,    size:'S'},
-  {id:'mini_diamond', name:'Mini Diamond',      cost:0,             rate:100,   size:'S'},
-  {id:'quantum',      name:'Quantum',           cost:0,             rate:175,   size:'M'},
+  {id:'mini_ruby',    name:'Mini Ruby Drill',    cost:0,             rate:67,    size:'S'},
+  {id:'mini_diamond', name:'Mini Diamond Drill', cost:0,             rate:100,   size:'S'},
+  {id:'quantum',      name:'Quantum Drill',      cost:0,             rate:175,   size:'M'},
   {id:'plasma',       name:'Plasma Drill',      cost:4500000,       rate:50,    size:'L'},
   {id:'hugelong',     name:'Huge Long Drill',   cost:40000000,      rate:220,   size:'L'},
   {id:'megaplasma',   name:'Mega Plasma Drill', cost:95000000,      rate:275,   size:'L'},
   {id:'multi',        name:'Multi Drill',       cost:280000000,     rate:350,   size:'L'},
   {id:'lava',         name:'Lava Drill',        cost:900000000,     rate:600,   size:'L'},
   {id:'iceplasma',    name:'Ice Plasma Drill',  cost:2400000000,    rate:800,   size:'L'},
-  {id:'crystal',      name:'Crystal',           cost:9000000000,    rate:1500,  size:'L'},
-  {id:'diamond',      name:'Diamond',           cost:27500000000,   rate:2750,  size:'L'},
-  {id:'ruby',         name:'Ruby',              cost:85500000000,   rate:4500,  size:'L'},
-  {id:'fusion',       name:'Fusion',            cost:137500000000,  rate:7500,  size:'L'},
-  {id:'uranium',      name:'Uranium',           cost:437500000000,  rate:12500, size:'L'},
-  {id:'radium',       name:'Radium',            cost:810000000000,  rate:18000, size:'L'},
-  {id:'palladium',    name:'Palladium',         cost:1200000000000, rate:25000, size:'L'},
-  {id:'thorium',      name:'Thorium',           cost:2100000000000, rate:37500, size:'L'},
+  {id:'crystal',      name:'Crystal Drill',      cost:9000000000,    rate:1500,  size:'L'},
+  {id:'diamond',      name:'Diamond Drill',      cost:27500000000,   rate:2750,  size:'L'},
+  {id:'ruby',         name:'Ruby Drill',         cost:85500000000,   rate:4500,  size:'L'},
+  {id:'fusion',       name:'Fusion Drill',       cost:137500000000,  rate:7500,  size:'L'},
+  {id:'uranium',      name:'Uranium Drill',      cost:437500000000,  rate:12500, size:'L'},
+  {id:'radium',       name:'Radium Drill',       cost:810000000000,  rate:18000, size:'L'},
+  {id:'palladium',    name:'Palladium Drill',    cost:1200000000000, rate:25000, size:'L'},
+  {id:'thorium',      name:'Thorium Drill',      cost:2100000000000, rate:37500, size:'L'},
 ];
 
 // ============ STATE ============
@@ -913,6 +913,13 @@ function loadState(){
     // Dedupe catalog by name (case-insensitive). Prefer DEFAULT_MACHINES IDs so future
     // migrations stay clean. Remap inventory and slot placements to the canonical IDs.
     if(!Array.isArray(s.catalog)) s.catalog = [];
+    // Sync names of saved catalog entries to the canonical DEFAULT_MACHINES names by id.
+    // Lets renames (e.g. adding "Drill" suffix) flow through without creating dedupe duplicates.
+    const defaultById = new Map(DEFAULT_MACHINES.map(m => [m.id, m]));
+    for(const m of s.catalog){
+      const d = defaultById.get(m.id);
+      if(d) m.name = d.name;
+    }
     const canonicalByName = new Map();
     for(const m of DEFAULT_MACHINES) canonicalByName.set(m.name.toLowerCase(), m.id);
     const idRemap = {};
@@ -1940,7 +1947,7 @@ function addCmpRow(presetId, presetQty){
   row.className = 'cmp-row';
   row.dataset.id = id;
   row.innerHTML = `
-    <select class="cmp-mach">${state.catalog.map(m=>`<option value="${m.id}">${m.name} (${fmt(m.cost)})</option>`).join('')}</select>
+    <select class="cmp-mach">${state.catalog.slice().sort((a,b)=>a.cost-b.cost).map(m=>`<option value="${m.id}">${m.name} (${fmt(m.cost)})</option>`).join('')}</select>
     <input class="cmp-qty" type="number" min="1" value="${presetQty||1}">
     <button class="rm" title="${T('delete')}">×</button>
   `;
@@ -1953,7 +1960,7 @@ function refreshCmpOptions(){
   cmpRowsEl.querySelectorAll('.cmp-row').forEach(row => {
     const sel = row.querySelector('.cmp-mach');
     const cur = sel.value;
-    sel.innerHTML = state.catalog.map(m=>`<option value="${m.id}">${m.name} (${fmt(m.cost)})</option>`).join('');
+    sel.innerHTML = state.catalog.slice().sort((a,b)=>a.cost-b.cost).map(m=>`<option value="${m.id}">${m.name} (${fmt(m.cost)})</option>`).join('');
     if(state.catalog.find(m=>m.id===cur)) sel.value = cur;
   });
 }
@@ -1997,7 +2004,7 @@ document.getElementById('cmpRun').onclick = () => {
 function renderCalculator(){
   const sel = document.getElementById('targetMachine');
   const cur = sel.value;
-  sel.innerHTML = `<option value="">- ${T('pickMachine')} -</option>` + state.catalog.map(m =>
+  sel.innerHTML = `<option value="">- ${T('pickMachine')} -</option>` + state.catalog.slice().sort((a,b)=>a.cost-b.cost).map(m =>
     `<option value="${m.id}">${m.name} (${fmt(m.cost)})</option>`
   ).join('');
   if(cur && state.catalog.find(m=>m.id===cur)) sel.value = cur;
@@ -2093,29 +2100,47 @@ function recalc3way(){
   el.addEventListener('focus', () => el.select());
 });
 
-// ============ SOUND + EFFECTS ============
-const audioCtx = (typeof window !== 'undefined') ? new (window.AudioContext||window.webkitAudioContext)() : null;
-function beep(freq=440, dur=0.08, type='sine', vol=0.07){
-  if(!audioCtx || state.muted) return;
-  if(audioCtx.state === 'suspended') audioCtx.resume();
-  const o = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  o.type = type; o.frequency.value = freq;
-  g.gain.value = vol;
-  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-  o.connect(g).connect(audioCtx.destination);
-  o.start(); o.stop(audioCtx.currentTime + dur);
+// ============ SOUND ============
+const SFX_URLS = {
+  click:   'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
+  drop:    'https://assets.mixkit.co/active_storage/sfx/1112/1112-preview.mp3',
+  pickup:  'https://assets.mixkit.co/active_storage/sfx/2575/2575-preview.mp3',
+  bad:     'https://assets.mixkit.co/active_storage/sfx/2691/2691-preview.mp3',
+  success: 'https://assets.mixkit.co/active_storage/sfx/1997/1997-preview.mp3',
+  toggle:  'https://assets.mixkit.co/active_storage/sfx/1119/1119-preview.mp3',
+};
+const SFX_VOL = { click:.35, drop:.5, pickup:.4, bad:.5, success:.5, toggle:.35 };
+const sfxPool = {};
+for(const k of Object.keys(SFX_URLS)){
+  const a = new Audio(SFX_URLS[k]);
+  a.preload = 'auto';
+  a.volume = SFX_VOL[k] ?? .4;
+  sfxPool[k] = a;
+}
+function playSfx(name){
+  if(state.muted) return;
+  const src = sfxPool[name];
+  if(!src) return;
+  // Clone so overlapping plays don't cut each other off.
+  const node = src.cloneNode(true);
+  node.volume = src.volume;
+  node.play().catch(()=>{ /* autoplay blocked or load failed - ignore silently */ });
 }
 const SFX = {
-  click:   () => beep(660, 0.04, 'square', 0.04),
-  drop:    () => { beep(520,0.05,'triangle',0.08); setTimeout(()=>beep(780,0.06,'triangle',0.07),40); },
-  pickup:  () => beep(880, 0.05, 'triangle', 0.06),
-  bad:     () => beep(180, 0.18, 'sawtooth', 0.08),
-  success: () => { beep(660,0.06,'sine',0.07); setTimeout(()=>beep(990,0.1,'sine',0.07),60); },
-  toggle:  () => beep(420, 0.05, 'sine', 0.05),
+  click:   () => playSfx('click'),
+  drop:    () => playSfx('drop'),
+  pickup:  () => playSfx('pickup'),
+  bad:     () => playSfx('bad'),
+  success: () => playSfx('success'),
+  toggle:  () => playSfx('toggle'),
 };
+// First pointerdown unlocks audio on browsers that block autoplay until interaction.
 document.addEventListener('pointerdown', () => {
-  if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  for(const k of Object.keys(sfxPool)){
+    const a = sfxPool[k];
+    a.muted = true;
+    a.play().then(()=>{ a.pause(); a.currentTime = 0; a.muted = false; }).catch(()=>{ a.muted = false; });
+  }
 }, {once:true});
 
 // Mute button
