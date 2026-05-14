@@ -18,7 +18,7 @@
   header .stat{display:flex;flex-direction:column;font-size:12px;color:var(--muted)}
   header .stat b{font-size:14px;color:var(--ink)}
   header input{width:120px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
-  main{display:grid;grid-template-columns:220px 1fr 320px;gap:12px;padding:12px;align-items:start}
+  main{display:grid;grid-template-columns:280px 1fr 320px;gap:12px;padding:12px;align-items:start}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
   h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
   /* Zones */
@@ -70,6 +70,12 @@
   /* Right panel */
   button.primary{background:var(--hi);color:#1a1a22;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;font:inherit;font-weight:600;width:100%;margin-bottom:6px}
   button.primary:hover{filter:brightness(1.1)}
+  button.primary.blue{background:#4ea0ff;color:#0d1320}
+  button.primary.blue:hover{filter:brightness(1.08)}
+  #btnLang{background:linear-gradient(135deg,#3a3a55,#22223a);border:1px solid #4a4a6a;border-radius:6px;padding:4px 10px;font-size:16px;cursor:pointer;transition:transform 120ms ease, box-shadow 120ms ease, filter 120ms ease}
+  #btnLang:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(78,160,255,.25);filter:brightness(1.1)}
+  #invControls button{padding:4px 8px;font-size:11px}
+  #invControls button.active{background:var(--hi);color:#1a1a22;border-color:transparent}
   button.danger{background:var(--bad);color:#fff;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;font:inherit;font-weight:600;width:100%;margin-bottom:6px}
   button.danger:hover{filter:brightness(1.1)}
   button.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:6px 10px;border-radius:6px;cursor:pointer;font:inherit}
@@ -175,7 +181,9 @@
   <div style="flex:1"></div>
   <button id="btnLang" title="Language / Dil">🇺🇸</button>
   <button id="btnMute" title="Mute/unmute">🔊</button>
-  <button class="ghost" id="btnSave" data-i18n="save">Save</button>
+  <button class="ghost" id="btnSaveSetup" data-i18n="saveSetup">Save Setup</button>
+  <button class="ghost" id="btnLoadSetup" data-i18n="loadSetup">Load Setup</button>
+  <input type="file" id="loadSetupFile" accept=".json,.txt,application/json" style="display:none">
   <button class="ghost" id="btnShare" data-i18n="share" title="Download a copy of this HTML with your current data baked in, so you can send it to others">Share<span class="ripple" style="height: 81.9763px; width: 81.9763px; left: 6.11499px; top: -31.0476px;"></span></button>
 </header>
 
@@ -183,6 +191,11 @@
   <!-- LEFT: Machine palette -->
   <div class="panel">
     <h3 data-i18n="inventory">Inventory</h3>
+    <div id="invControls" style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap">
+      <button class="ghost" data-sort="cheap" data-i18n="sortCheap">Cheapest</button>
+      <button class="ghost" data-sort="expensive" data-i18n="sortExpensive">Expensive</button>
+      <button class="ghost" id="invOnlyAvail" data-i18n="onlyAvail">Available only</button>
+    </div>
     <div id="palette"><div class="chip" draggable="true" data-machine-id="m1778447750139">
       <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:grab">
         <span class="swatch S"></span>
@@ -338,8 +351,7 @@
         <button data-edit="m1778447627842" title="edit">✎</button>
       </div>
     </div></div>
-    <button class="ghost" id="btnAddMachine" style="width:100%" data-i18n="addEditMachine">+ Add/Edit Machine Type</button>
-    <div class="legend" data-i18n="paletteLegend">Number = available. <b>+/−</b> to update owned. Drag chip → place in zone. ✎ to edit. Hover chip + <b>W/S</b>: reorder.</div>
+    <div class="legend" data-i18n="paletteLegend">Number = available. <b>+/−</b> to update owned. Drag chip → place in zone. Hover chip + <b>W/S</b>: reorder.</div>
   </div>
 
   <!-- CENTER: Zones -->
@@ -487,7 +499,6 @@
       <input id="budget" type="text" data-i18n-ph="budgetPh" placeholder="Budget (e.g. 1T)">
       <button class="primary" id="btnInvest" style="width:auto;flex:0 0 auto;margin-bottom:0" data-i18n="invest">Suggest</button>
     </div>
-    <button class="primary" id="btnAuto" data-i18n="autoPlace">Auto-Place</button>
     <div id="suggestion" class="suggest empty" data-i18n="noSuggestion">No suggestion yet.</div>
     <div id="moves" class="moves"></div>
 
@@ -522,6 +533,7 @@
     <div id="cmpResult"></div>
 
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+      <button class="primary blue" id="btnAuto" data-i18n="autoPlace">Auto-Place</button>
       <button class="primary" id="btnCollect" data-i18n="collect">Collect Machines</button>
       <button class="danger" id="btnWipe" data-i18n="reset">Reset</button>
     </div>
@@ -562,6 +574,8 @@ const I18N = {
     money:'Money', gas:'Gas Stock', sellPrice:'Sell price (×)', bonus:'Bonus (e.g. 4.75 = 475%)',
     totalRate:'Total production/s', totalIncome:'Total money/s', tacoValue:'Taco value',
     save:'Save', saved:'Saved.', share:'Share', shareDone:'HTML with your data downloaded. Send that file.',
+    saveSetup:'Save Setup', loadSetup:'Load Setup', setupSaved:'Setup file downloaded.', setupLoaded:'Setup loaded.', setupInvalid:'Invalid setup file.',
+    sortCheap:'Cheapest', sortExpensive:'Expensive', onlyAvail:'Available only',
     // Panels
     inventory:'Inventory', addEditMachine:'+ Add/Edit Machine Type',
     paletteLegend:'Number = available. <b>+/−</b> to update owned. Drag chip → place in zone. ✎ to edit. Hover chip + <b>W/S</b>: reorder.',
@@ -630,6 +644,8 @@ const I18N = {
     money:'Para', gas:'Benzin Stoğu', sellPrice:'Satış fiyatı (×)', bonus:'Bonus (örn 4.75 = %475)',
     totalRate:'Toplam üretim/s', totalIncome:'Toplam para/s', tacoValue:'Taco değeri',
     save:'Kaydet', saved:'Kaydedildi.', share:'Paylaş', shareDone:'Verilerinle dolu HTML indirildi. Onu gönder.',
+    saveSetup:'Kurulumu Kaydet', loadSetup:'Kurulumu Yükle', setupSaved:'Kurulum dosyası indirildi.', setupLoaded:'Kurulum yüklendi.', setupInvalid:'Geçersiz kurulum dosyası.',
+    sortCheap:'En Ucuz', sortExpensive:'En Pahalı', onlyAvail:'Sadece mevcut',
     inventory:'Envanter', addEditMachine:'+ Makine Tipi Ekle/Düzenle',
     paletteLegend:'Sayı = kullanılabilir adet. <b>+/−</b> ile sahip olduğunu güncelle. Çipi sürükle → bölgeye yerleştir. ✎ ile makineyi düzenle. Çipin üstünde <b>W/S</b>: sırayı değiştir.',
     zonesLegend:'Hover + <span class="kbd">C</span>: 2x1 slotu 2 adet 1x1\'e böler / birleştirir. Slota çift tıkla: makineyi sök.',
@@ -734,6 +750,8 @@ function makeFreshState(){
     tacoGas: 0,
     muted: false,
     lang: 'en',
+    invSort: null,
+    invOnlyAvailable: false,
   };
 }
 function placedCount(machineId){
@@ -774,6 +792,8 @@ function loadState(){
     if(typeof s.tacoGas !== 'number') s.tacoGas = 0;
     if(typeof s.muted !== 'boolean') s.muted = false;
     if(s.lang !== 'tr' && s.lang !== 'en') s.lang = 'en';
+    if(s.invSort !== 'cheap' && s.invSort !== 'expensive') s.invSort = null;
+    if(typeof s.invOnlyAvailable !== 'boolean') s.invOnlyAvailable = false;
     // Eski kayıtlardaki sıralama farklı olabilir → bölge mult'larını mevcut layout'a göre güncelle.
     for(let i=0;i<ZONE_MULTS.length && i<s.zones.length;i++){
       s.zones[i].mult = ZONE_MULTS[i];
@@ -936,7 +956,16 @@ function renderHeader(){
 function renderPalette(){
   const el = document.getElementById('palette');
   el.innerHTML = '';
-  for(const m of state.catalog){
+  let list = state.catalog.slice();
+  if(state.invOnlyAvailable) list = list.filter(m => availableCount(m.id) > 0);
+  if(state.invSort === 'cheap') list.sort((a,b)=>a.cost-b.cost);
+  else if(state.invSort === 'expensive') list.sort((a,b)=>b.cost-a.cost);
+  document.querySelectorAll('#invControls button[data-sort]').forEach(b => {
+    b.classList.toggle('active', b.dataset.sort === state.invSort);
+  });
+  const oa = document.getElementById('invOnlyAvail');
+  if(oa) oa.classList.toggle('active', !!state.invOnlyAvailable);
+  for(const m of list){
     const avail = availableCount(m.id);
     const owned = ownedCount(m.id);
     const placed = placedCount(m.id);
@@ -956,7 +985,6 @@ function renderPalette(){
       <div class="actions">
         <button data-dec="${m.id}" title="${T('minusOwn')}">−</button>
         <button data-inc="${m.id}" title="${T('plusOwn')}">+</button>
-        <button data-edit="${m.id}" title="${T('edit')}">✎</button>
       </div>
     `;
     chip.addEventListener('dragstart', e => {
@@ -970,9 +998,6 @@ function renderPalette(){
     chip.addEventListener('mouseleave', () => { if(hoveredChip === m.id) hoveredChip = null; });
     el.appendChild(chip);
   }
-  el.querySelectorAll('button[data-edit]').forEach(b => {
-    b.onclick = (e) => { e.stopPropagation(); openMachineDialog(b.dataset.edit); };
-  });
   el.querySelectorAll('button[data-inc]').forEach(b => {
     b.onclick = (e) => { e.stopPropagation(); const id=b.dataset.inc; state.inventory[id]=ownedCount(id)+1; render(); };
   });
@@ -1220,7 +1245,66 @@ document.getElementById('money').addEventListener('change', e => { state.money =
 document.getElementById('gas').addEventListener('change', e => { state.gas = parseNum(e.target.value); render(); });
 document.getElementById('sellPrice').addEventListener('input', e => { state.sellPrice = parseFloat(e.target.value)||0; render(); });
 document.getElementById('bonus').addEventListener('input', e => { state.bonus = parseFloat(e.target.value)||0; render(); });
-document.getElementById('btnSave').onclick = () => { saveState(); flashSuggestion(T('saved')); };
+
+// Inventory sort/filter controls
+document.querySelectorAll('#invControls button[data-sort]').forEach(b => {
+  b.onclick = () => {
+    const v = b.dataset.sort;
+    state.invSort = (state.invSort === v) ? null : v;
+    saveState(); render();
+  };
+});
+document.getElementById('invOnlyAvail').onclick = () => {
+  state.invOnlyAvailable = !state.invOnlyAvailable;
+  saveState(); render();
+};
+document.getElementById('btnSaveSetup').onclick = () => {
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    zones: state.zones,
+    inventory: state.inventory,
+    bonus: state.bonus,
+    sellPrice: state.sellPrice,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const d = new Date().toISOString().slice(0,10);
+  a.download = `oil-calculator-setup-${d}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  flashSuggestion(T('setupSaved'));
+};
+document.getElementById('btnLoadSetup').onclick = () => {
+  document.getElementById('loadSetupFile').click();
+};
+document.getElementById('loadSetupFile').addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      if(!data || !Array.isArray(data.zones) || data.zones.length !== 12 || typeof data.inventory !== 'object'){
+        flashSuggestion(T('setupInvalid')); return;
+      }
+      state.zones = data.zones;
+      state.inventory = data.inventory || {};
+      if(typeof data.bonus === 'number') state.bonus = data.bonus;
+      if(typeof data.sellPrice === 'number') state.sellPrice = data.sellPrice;
+      clearSuggestions();
+      saveState();
+      render();
+      flashSuggestion(T('setupLoaded'));
+    }catch(err){
+      flashSuggestion(T('setupInvalid'));
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
 
 document.getElementById('btnShare').onclick = async () => {
   saveState();
@@ -1295,7 +1379,6 @@ function openMachineDialog(id){
   document.getElementById('mDelete').style.display = id ? '' : 'none';
   document.getElementById('dlgMachine').showModal();
 }
-document.getElementById('btnAddMachine').onclick = () => openMachineDialog(null);
 document.getElementById('mCancel').onclick = () => document.getElementById('dlgMachine').close();
 document.getElementById('mSave').onclick = (e) => {
   e.preventDefault();

@@ -44,7 +44,7 @@ Everything lives in one HTML file with three `<script>` blocks:
 
 - Live site: https://thekayrawastaken.github.io/oil-calculator/
 - Repo: https://github.com/thekayrawastaken/oil-calculator (public, owner `thekayrawastaken`)
-- The deployed file is `index.html`. Treat `oil calculator.html` and `index.html` as the same file — when editing, **apply every change to BOTH files** so the local copy and the deployed copy stay in sync. (Or edit `index.html` and `Copy-Item index.html "oil calculator.html"`.)
+- The deployed file is `index.html`. **Only edit `index.html`** — do not touch `oil calculator.html` (it's the original local copy and the user no longer wants it kept in sync).
 - **After any edit, automatically commit and push** — the user has asked for auto-deploy, so do not wait for confirmation:
   ```
   git add -A
