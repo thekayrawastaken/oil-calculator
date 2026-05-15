@@ -186,7 +186,7 @@
 
 <header>
   <div class="stat"><span data-i18n="money">Money</span><b><input id="money" type="text" value="0"></b></div>
-  <div class="stat"><span data-i18n="gas">Gas Stock</span><b><input id="gas" type="text" value="0"></b></div>
+  <div class="stat"><span data-i18n="gas">Oil Stock</span><b><input id="gas" type="text" value="0"></b></div>
   <div class="stat"><span data-i18n="sellPrice">Sell price (×)</span><b><input id="sellPrice" type="number" step="0.01" value="15"></b></div>
   <div class="stat"><span data-i18n="bonus">Bonus (e.g. 4.75 = 475%)</span><b><input id="bonus" type="number" step="0.01" value="4.75"></b></div>
   <div class="stat"><span data-i18n="totalRate">Total production/s</span><b id="totalRate" data-raw="709522">709.52K/s</b></div>
@@ -515,8 +515,8 @@
     <div id="suggestion" class="suggest empty" data-i18n="noSuggestion">No suggestion yet.</div>
     <div id="moves" class="moves"></div>
 
-    <h3 style="margin-top:14px" data-i18n="threeWayTitle">3-Way Calculator (Gas / Money / Time)</h3>
-    <div class="row"><span style="width:60px;color:var(--muted);align-self:center" data-i18n="gasLabel">Gas</span><input id="cBenzin" data-i18n-ph="gasPh" placeholder="e.g. 1.5M"></div>
+    <h3 style="margin-top:14px" data-i18n="threeWayTitle">3-Way Calculator (Oil / Money / Time)</h3>
+    <div class="row"><span style="width:60px;color:var(--muted);align-self:center" data-i18n="gasLabel">Oil</span><input id="cBenzin" data-i18n-ph="gasPh" placeholder="e.g. 1.5M"></div>
     <div class="row"><span style="width:60px;color:var(--muted);align-self:center" data-i18n="moneyLabel">Money</span><input id="cPara" data-i18n-ph="moneyPh" placeholder="e.g. 1B"></div>
     <div class="row"><span style="width:60px;color:var(--muted);align-self:center" data-i18n="timeLabel">Time</span><input id="cSure" data-i18n-ph="timePh" placeholder="e.g. 5m, 2h, 1d, 30s"></div>
     <div id="calcOut" class="legend" data-i18n="threeWayHint">Type in one → the other two are solved using current production rate.</div>
@@ -528,7 +528,7 @@
     </div>
     <div id="affordResult" class="afford-card"><div class="big">-<span class="unit">No machine chosen</span></div><div class="sub">Choose a machine</div></div>
 
-    <h3 style="margin-top:14px" data-i18n="machineCompare">Machine Comparator</h3>
+    <h3 style="margin-top:14px" data-i18n="machineCompare">Drill Comparator</h3>
     <div id="cmpRows"><div class="cmp-row" data-id="1">
     <select class="cmp-mach"><option value="m1778447750139">Mini Ruby (0)</option><option value="m1778447701933">Mini Diamond (0)</option><option value="m1778447765648">Quantum (0)</option><option value="m1778449160005">Crystal (9.00B)</option><option value="m1778448934122">Diamond (27.50B)</option><option value="m1778448911681">Ruby (85.50B)</option><option value="m1778447536933">Fusion (137.50B)</option><option value="m1778445752408">Uranium (437.50B)</option><option value="m1778447554327">Radium (810.00B)</option><option value="m1778447614796">Palladium (1.20T)</option><option value="m1778447627842">Thorium (2.10T)</option></select>
     <input class="cmp-qty" type="number" min="1" value="1">
@@ -594,7 +594,7 @@
 const I18N = {
   en: {
     // Header
-    money:'Money', gas:'Gas Stock', sellPrice:'Sell price (×)', bonus:'Bonus (e.g. 4.75 = 475%)',
+    money:'Money', gas:'Oil Stock', sellPrice:'Sell price (×)', bonus:'Bonus (e.g. 4.75 = 475%)',
     totalRate:'Total production/s', totalIncome:'Total money/s', tacoValue:'Taco value',
     save:'Save', saved:'Saved.', share:'Share', shareDone:'HTML with your data downloaded. Send that file.',
     saveSetup:'Save Setup', loadSetup:'Load Setup', setupSaved:'Setup file downloaded.', setupLoaded:'Setup loaded.', setupInvalid:'Invalid setup file.',
@@ -624,9 +624,9 @@ const I18N = {
       <h4>Right panel tools</h4>
       <ul>
         <li><b>Investment Suggestion</b>: type a budget (e.g. <code>500B</code>, <code>2T</code>) to get a buy plan.</li>
-        <li><b>3-Way Calculator</b>: fill in Gas / Money / Time, the other two are solved.</li>
+        <li><b>3-Way Calculator</b>: fill in Oil / Money / Time, the other two are solved.</li>
         <li><b>Machine Calculator</b>: pick a drill + qty to see how long until you can afford it.</li>
-        <li><b>Machine Comparator</b>: compare combos of drill purchases by income delta.</li>
+        <li><b>Drill Comparator</b>: compare combos of drill purchases by income delta.</li>
       </ul>
       <h4>Header buttons</h4>
       <ul>
@@ -643,12 +643,12 @@ const I18N = {
     investmentTitle:'Investment Suggestion',
     budgetPh:'Budget (e.g. 1T)', invest:'Suggest', autoPlace:'Auto-Place',
     noSuggestion:'No suggestion yet.',
-    threeWayTitle:'3-Way Calculator (Gas / Money / Time)',
-    gasLabel:'Gas', moneyLabel:'Money', timeLabel:'Time',
+    threeWayTitle:'3-Way Calculator (Oil / Money / Time)',
+    gasLabel:'Oil', moneyLabel:'Money', timeLabel:'Time',
     gasPh:'e.g. 1.5M', moneyPh:'e.g. 1B', timePh:'e.g. 5m, 2h, 1d, 30s',
     threeWayHint:'Type in one → the other two are solved using current production rate.',
     machineCalc:'Machine Calculator',
-    machineCompare:'Machine Comparator',
+    machineCompare:'Drill Comparator',
     addOption:'+ option', compare:'Compare',
     compareHint:'Optimal placement is assumed for each option (existing placements are redistributed). The one that adds the most income wins.',
     collect:'Collect Machines', reset:'Reset',
@@ -696,12 +696,12 @@ const I18N = {
     // Zone tooltip
     ttSlots:'Slots', ttEmpty:'Empty', ttIncome:'Income', ttDisabled:'DISABLED',
     // Taco
-    tacoGas:(v)=>`${v} gas`,
+    tacoGas:(v)=>`${v} oil`,
     // Time units
     uS:'s', uM:'m', uH:'h', uD:'d',
   },
   tr: {
-    money:'Para', gas:'Benzin Stoğu', sellPrice:'Satış fiyatı (×)', bonus:'Bonus (örn 4.75 = %475)',
+    money:'Para', gas:'Petrol Stoğu', sellPrice:'Satış fiyatı (×)', bonus:'Bonus (örn 4.75 = %475)',
     totalRate:'Toplam üretim/s', totalIncome:'Toplam para/s', tacoValue:'Taco değeri',
     save:'Kaydet', saved:'Kaydedildi.', share:'Paylaş', shareDone:'Verilerinle dolu HTML indirildi. Onu gönder.',
     saveSetup:'Kurulumu Kaydet', loadSetup:'Kurulumu Yükle', setupSaved:'Kurulum dosyası indirildi.', setupLoaded:'Kurulum yüklendi.', setupInvalid:'Geçersiz kurulum dosyası.',
@@ -731,9 +731,9 @@ const I18N = {
       <h4>Sağ panel araçları</h4>
       <ul>
         <li><b>Yatırım Önerisi</b>: bir bütçe yaz (örn. <code>500B</code>, <code>2T</code>); alım planı çıkar.</li>
-        <li><b>3-Yönlü Hesap</b>: Gas / Money / Time alanlarından birini doldur, diğerleri hesaplanır.</li>
+        <li><b>3-Yönlü Hesap</b>: Oil / Money / Time alanlarından birini doldur, diğerleri hesaplanır.</li>
         <li><b>Makine Hesap</b>: drill ve adet seç, kazanma süresini gör.</li>
-        <li><b>Makine Karşılaştırıcı</b>: drill alım kombinasyonlarını gelir farkına göre karşılaştır.</li>
+        <li><b>Drill Karşılaştırıcı</b>: drill alım kombinasyonlarını gelir farkına göre karşılaştır.</li>
       </ul>
       <h4>Header butonları</h4>
       <ul>
@@ -750,11 +750,11 @@ const I18N = {
     budgetPh:'Bütçe (örn 1T)', invest:'Yatırım Öner', autoPlace:'Otomatik Yerleştir',
     noSuggestion:'Henüz öneri yok.',
     threeWayTitle:'3 Yönlü Hesap (Benzin / Para / Süre)',
-    gasLabel:'Benzin', moneyLabel:'Para', timeLabel:'Süre',
+    gasLabel:'Petrol', moneyLabel:'Para', timeLabel:'Süre',
     gasPh:'örn 1.5M', moneyPh:'örn 1B', timePh:'örn 5m, 2h, 1d, 30s',
     threeWayHint:'Bir alana yaz → diğer ikisi mevcut üretim hızına göre çözülür.',
     machineCalc:'Makine Hesaplayıcı',
-    machineCompare:'Makine Karşılaştırıcı',
+    machineCompare:'Drill Karşılaştırıcı',
     addOption:'+ seçenek', compare:'Karşılaştır',
     compareHint:'Her seçenek için optimal yerleşim varsayılır (mevcut yerleşik makineler dahil yeniden dağıtılır). En çok gelir getiren kazanır.',
     collect:'Makineleri Topla', reset:'Sıfırla',
@@ -791,7 +791,7 @@ const I18N = {
     twoWayNoRate:' · (üretim 0 → süre hesaplanamaz)',
     twoWayHint:'Bir alana yaz → diğer ikisi çözülür.',
     ttSlots:'Slot', ttEmpty:'Boş', ttIncome:'Gelir', ttDisabled:'KAPALI',
-    tacoGas:(v)=>`${v} benzin`,
+    tacoGas:(v)=>`${v} petrol`,
     uS:'sn', uM:'dk', uH:'sa', uD:'gün',
   },
 };
@@ -1291,7 +1291,7 @@ function renderSlot(z, s, slot){
   div.addEventListener('dblclick', e => {
     e.preventDefault();
     if(slot.shape === 'M' && slot.split) return; // sub handles its own dblclick
-    if(slot.machine){ slot.machine = null; clearSuggestions(); render(); }
+    if(slot.machine){ slot.machine = null; clearSuggestions(); render(); if(typeof SFX !== 'undefined') SFX.drop(); }
   });
   return div;
 }
@@ -1331,7 +1331,7 @@ function attachDnD(el, z, s, sub, shape){
     }
     el.addEventListener('dblclick', e => {
       e.stopPropagation();
-      if(slot.sub[sub]){ slot.sub[sub] = null; clearSuggestions(); render(); }
+      if(slot.sub[sub]){ slot.sub[sub] = null; clearSuggestions(); render(); if(typeof SFX !== 'undefined') SFX.drop(); }
     });
   }
 }
@@ -2008,6 +2008,8 @@ function renderCalculator(){
   else sel.value = '';
   updateAfford();
 }
+// Treat oil stock as cash at the configured sell price (default $15) so calculators reflect liquidatable wealth.
+function availableMoney(){ return state.money + state.gas * state.sellPrice; }
 function updateAfford(){
   const id = document.getElementById('targetMachine').value;
   const qty = Math.max(1, parseInt(document.getElementById('targetQty').value)||1);
@@ -2019,14 +2021,16 @@ function updateAfford(){
     return;
   }
   const need = m.cost * qty;
-  const have = state.money;
+  const oilValue = state.gas * state.sellPrice;
+  const have = availableMoney();
   const t = totals();
   const remaining = need - have;
+  const haveBreakdown = oilValue > 0 ? ` <span class="meta">(${fmt(state.money)} + ${fmt(oilValue)} oil)</span>` : '';
   if(remaining <= 0){
     card.className = 'afford-card ready';
     card.innerHTML = `
       <div class="big">${T('ready')}<span class="badge">${T('readyBadge')}</span></div>
-      <div class="sub">${qty}× ${m.name} · ${T('needLabel')} <b>${fmt(need)}</b> · ${T('haveLabel')} <b>${fmt(have)}</b></div>
+      <div class="sub">${qty}× ${m.name} · ${T('needLabel')} <b>${fmt(need)}</b> · ${T('haveLabel')} <b>${fmt(have)}</b>${haveBreakdown}</div>
     `;
   } else if(t.income <= 0){
     card.className = 'afford-card';
@@ -2062,7 +2066,7 @@ function recalc3way(){
     g = parseNum(cBenzin.value);
     money = gasToMoney(g);
     sec = t.rate>0 ? g / t.rate : Infinity;
-    srcLabel = `${fmt(g)} ${state.lang==='tr'?'benzin':'gas'}`;
+    srcLabel = `${fmt(g)} ${state.lang==='tr'?'petrol':'oil'}`;
   } else if(cLastEdited === 'cPara'){
     money = parseNum(cPara.value);
     g = moneyToGas(money);
@@ -2224,8 +2228,9 @@ function floatGainAt(x, y, text){
   setTimeout(()=> el.remove(), 1000);
 }
 
-// (Pickup and zone-toggle sounds removed: every button now plays one sound via the global click handler;
-// dragging a drill stays silent so only the actual placement makes the satisfying drop sound.)
+// Drag/pickup sound: same drop sound as placement so the drag feels tactile.
+document.getElementById('palette').addEventListener('dragstart', () => SFX.drop(), true);
+document.getElementById('zones').addEventListener('dragstart', () => SFX.drop(), true);
 
 // ============ INIT ============
 addCmpRow();
