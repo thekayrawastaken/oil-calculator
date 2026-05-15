@@ -2008,8 +2008,9 @@ function renderCalculator(){
   else sel.value = '';
   updateAfford();
 }
-// Treat oil stock as cash at the configured sell price (default $15) so calculators reflect liquidatable wealth.
-function availableMoney(){ return state.money + state.gas * state.sellPrice; }
+// Treat oil stock as cash at the effective sell price (sellPrice × (1 + bonus)),
+// matching how income and the 3-way converter already value oil.
+function availableMoney(){ return state.money + state.gas * state.sellPrice * (1 + state.bonus); }
 function updateAfford(){
   const id = document.getElementById('targetMachine').value;
   const qty = Math.max(1, parseInt(document.getElementById('targetQty').value)||1);
@@ -2021,7 +2022,7 @@ function updateAfford(){
     return;
   }
   const need = m.cost * qty;
-  const oilValue = state.gas * state.sellPrice;
+  const oilValue = state.gas * state.sellPrice * (1 + state.bonus);
   const have = availableMoney();
   const t = totals();
   const remaining = need - have;
