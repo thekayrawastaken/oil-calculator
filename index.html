@@ -25,7 +25,10 @@
   :root.light .afford-card.ready .big{color:#1f9d54}
   :root.light .afford-card .badge{background:rgba(31,157,84,.15);color:#1f7a48}
   *{box-sizing:border-box}
+  html,body{max-width:100%;overflow-x:hidden}
   body{margin:0;font:14px/1.4 system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+  main{max-width:100vw}
+  .panel,.left-col,#zones{min-width:0}
   header{display:flex;flex-wrap:wrap;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);align-items:center}
   header .stat{display:flex;flex-direction:column;font-size:12px;color:var(--muted)}
   header .stat b{font-size:14px;color:var(--ink)}
@@ -80,6 +83,16 @@
   .chip .meta{font-size:10px;color:var(--muted)}
   .chip .qty{background:var(--hi);color:#1a1a22;font-weight:700;font-size:11px;padding:1px 6px;border-radius:10px;margin-right:4px}
   .chip .qty.zero{background:#444;color:#888}
+  .chip.chip-gold{background:linear-gradient(135deg,#4a3d1a,#2c2516);border-color:#a07f2a}
+  .chip.chip-gold b{color:#ffd76b}
+  :root.light .chip.chip-gold{background:linear-gradient(135deg,#fff3c4,#ffe39a);border-color:#c79518}
+  :root.light .chip.chip-gold b{color:#7a5a0d}
+  .chip.chip-solar{background:linear-gradient(135deg,#1a3a4a,#16252c);border-color:#2a7fa0}
+  .chip.chip-solar b{color:#7fd1ff}
+  :root.light .chip.chip-solar{background:linear-gradient(135deg,#dcf2ff,#bde3f7);border-color:#1885b8}
+  :root.light .chip.chip-solar b{color:#0d5a7a}
+  .palette-divider{display:flex;align-items:center;gap:8px;margin:10px 0 6px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .palette-divider::before,.palette-divider::after{content:'';flex:1;height:1px;background:var(--line)}
   .chip .actions{display:flex;gap:2px}
   .chip button{border:none;background:rgba(255,255,255,.08);color:var(--ink);border-radius:3px;padding:2px 5px;font-size:10px;cursor:pointer}
   .chip button:hover{background:rgba(255,255,255,.15)}
@@ -117,7 +130,7 @@
   .chip[draggable="true"]:hover { transform: translateY(-1px); box-shadow:0 2px 8px rgba(0,0,0,.25); }
   .chip.dragging { opacity:.45; }
   .row{display:flex;gap:6px;margin-bottom:8px}
-  .row input,.row select{flex:1;padding:6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
+  .row input,.row select{flex:1;min-width:0;max-width:100%;padding:6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
   .suggest{background:#3a341a;border:1px solid var(--hi);border-radius:6px;padding:8px;margin-top:8px;font-size:13px;color:#ffe9a8}
   .suggest.empty{background:var(--panel2);border-color:var(--line);color:var(--muted)}
   .moves{max-height:200px;overflow:auto;font-size:12px}
@@ -146,7 +159,7 @@
   .afford-card .badge{display:inline-block;background:rgba(58,203,122,.15);color:#5ee08a;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px;font-weight:600}
   /* Comparator */
   .cmp-row{display:grid;grid-template-columns:1fr 60px auto;gap:6px;margin-bottom:6px;align-items:center}
-  .cmp-row select,.cmp-row input{padding:6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
+  .cmp-row select,.cmp-row input{min-width:0;max-width:100%;padding:6px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--panel2);color:var(--ink)}
   .cmp-row .rm{background:var(--panel2);border:1px solid var(--line);color:var(--bad);padding:4px 8px;border-radius:4px;cursor:pointer;font-size:14px;line-height:1}
   .cmp-row .rm:hover{background:#3a2424}
   #cmpAddRow{font-size:12px;padding:4px 8px;margin-bottom:6px}
@@ -192,6 +205,44 @@
     .slot.pop,.slot.split .sub.pop{animation:none}
     .zone-tooltip{transition:none}
   }
+
+  /* Packs panel */
+  .left-col{display:flex;flex-direction:column;gap:12px;min-width:0}
+  #packsPanel h3{margin:0 0 8px 0}
+  .pack-card{display:flex;gap:14px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-bottom:8px}
+  .pack-card:last-child{margin-bottom:0}
+  .pack-icon{width:120px;height:120px;object-fit:contain;border-radius:8px;flex:0 0 120px;background:rgba(255,255,255,.03)}
+  .pack-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+  .pack-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:2px}
+  .pack-head b{font-size:13px}
+  .pack-price{font-size:11px;font-weight:700;padding:2px 6px;border-radius:10px;white-space:nowrap}
+  .pack-price.oil{background:rgba(255,176,46,.18);color:#ffb02e;border:1px solid rgba(255,176,46,.35)}
+  .pack-price.robux{background:rgba(0,184,99,.18);color:#00c46a;border:1px solid rgba(0,184,99,.35)}
+  .pack-row{display:grid;grid-template-columns:46px 1fr auto;gap:6px;align-items:center;font-size:11px;padding:2px 0}
+  .pack-pct{position:relative;text-align:center;font-weight:700;padding:2px 4px;border-radius:4px;background:linear-gradient(90deg,rgba(110,160,255,.35) 0,rgba(110,160,255,.35) var(--p,0%),rgba(255,255,255,.04) var(--p,0%),rgba(255,255,255,.04) 100%);color:#dfe7ff;font-size:10px}
+  .pack-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pack-stats{color:var(--muted,#9aa);font-size:10px;white-space:nowrap}
+
+  /* Packs dialog */
+  #dlgPacks{max-width:1000px;width:94vw;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:18px}
+  #dlgPacks::backdrop{background:rgba(0,0,0,.6)}
+  .dlg-packs-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .dlg-packs-controls{display:flex;align-items:center;gap:14px;padding:10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin-bottom:8px;flex-wrap:wrap}
+  .luck-control{display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px;font-size:12px}
+  .luck-control input[type=range]{accent-color:#6ea0ff}
+  .dlg-packs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:12px}
+  .dlg-packs-grid .pack-card{margin-bottom:0}
+  .pack-qty-row{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:11px;color:var(--muted)}
+  .pack-qty-row input{width:64px;padding:3px 6px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:4px;font:inherit}
+  .sim-result{margin-top:10px;padding:10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:12px;min-height:32px}
+  .sim-result:empty::before{content:"No simulation yet — pick quantities and press Simulate.";color:var(--muted);font-style:italic}
+  .sim-pack-block{margin-bottom:8px}
+  .sim-pack-block:last-child{margin-bottom:0}
+  .sim-pack-title{font-weight:700;margin-bottom:4px;font-size:12px}
+  .sim-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;padding:2px 0;font-size:11px;align-items:center}
+  .sim-row .sim-count{font-weight:700;color:#9bd4ff;text-align:right;min-width:48px}
+  .sim-row .sim-exp{color:var(--muted);text-align:right;min-width:80px}
+  .sim-total{margin-top:6px;padding-top:6px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -204,6 +255,7 @@
   <div class="stat"><span data-i18n="totalRate">Total production/s</span><b id="totalRate" data-raw="709522">709.52K/s</b></div>
   <div class="stat"><span data-i18n="totalIncome">Total money/s</span><b id="totalIncome" data-raw="61196272.5">61.20M/s</b></div>
   <div class="stat"><span data-i18n="tacoValue">Taco value</span><b id="tacoValue" data-raw="18362429.36">18.36M gas</b></div>
+  <div class="stat"><span data-i18n="energyRate">Energy/s</span><b id="totalEnergy" data-raw="0">0/s</b></div>
   <div style="flex:1"></div>
   <button id="btnLang" title="Language / Dil">🇺🇸</button>
   <button id="btnMute" title="Mute/unmute">🔊</button>
@@ -215,10 +267,13 @@
 </header>
 
 <main>
-  <!-- LEFT: Machine palette -->
+  <!-- LEFT: Machine palette + Packs -->
+  <div class="left-col">
   <div class="panel">
     <h3 data-i18n="inventory">Inventory</h3>
     <div id="invControls" style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap">
+      <button class="ghost" data-cat="drills" data-i18n="catDrills">Drills</button>
+      <button class="ghost" data-cat="solar" data-i18n="catSolar">Solar panels</button>
       <button class="ghost" data-sort="cheap" data-i18n="sortCheap">Cheapest</button>
       <button class="ghost" data-sort="expensive" data-i18n="sortExpensive">Expensive</button>
       <button class="ghost" id="invOnlyAvail" data-i18n="onlyAvail">Available only</button>
@@ -378,6 +433,8 @@
         <button data-edit="m1778447627842" title="edit">✎</button>
       </div>
     </div></div>
+  </div>
+
   </div>
 
   <!-- CENTER: Zones -->
@@ -541,6 +598,23 @@
     </div>
     <div id="affordResult" class="afford-card"><div class="big">-<span class="unit">No machine chosen</span></div><div class="sub">Choose a machine</div></div>
 
+    <h3 style="margin-top:14px" data-i18n="goldenCalc">Golden Machine</h3>
+    <div class="row">
+      <select id="goldenBase"><option value="">- Choose a drill -</option></select>
+    </div>
+    <div class="row">
+      <span style="width:80px;color:var(--muted);align-self:center" data-i18n="goldenDrillsIn">Drill rate</span>
+      <input id="goldenIn" type="number" min="1" max="4" step="1" value="1">
+    </div>
+    <div class="row">
+      <span style="width:80px;color:var(--muted);align-self:center" data-i18n="goldenWanted">Goldens wanted</span>
+      <input id="goldenWanted" type="number" min="1" step="1" value="1">
+    </div>
+    <div id="goldenResult" class="afford-card">
+      <div class="big">15%<span class="unit" data-i18n="goldenChance">success per attempt</span></div>
+      <div class="sub" data-i18n="goldenLuckLine">1 drill → 15% · 2 → 40% · 3 → 75% · 4 → 100%</div>
+    </div>
+
     <h3 style="margin-top:14px" data-i18n="machineCompare">Drill Comparator</h3>
     <div id="cmpRows"><div class="cmp-row" data-id="1">
     <select class="cmp-mach"><option value="m1778447750139">Mini Ruby (0)</option><option value="m1778447701933">Mini Diamond (0)</option><option value="m1778447765648">Quantum (0)</option><option value="m1778449160005">Crystal (9.00B)</option><option value="m1778448934122">Diamond (27.50B)</option><option value="m1778448911681">Ruby (85.50B)</option><option value="m1778447536933">Fusion (137.50B)</option><option value="m1778445752408">Uranium (437.50B)</option><option value="m1778447554327">Radium (810.00B)</option><option value="m1778447614796">Palladium (1.20T)</option><option value="m1778447627842">Thorium (2.10T)</option></select>
@@ -557,6 +631,10 @@
     </div>
     <div class="legend" data-i18n="compareHint">Optimal placement is assumed for each option (existing placements are redistributed). The one that adds the most income wins.</div>
     <div id="cmpResult"></div>
+
+    <h3 style="margin-top:14px" data-i18n="packsTitle">Packs</h3>
+    <button class="primary" id="btnShowPacks" data-i18n="showPacks" style="width:100%">Show Packs</button>
+    <div class="legend" data-i18n="packsPanelHint" style="margin-top:6px">Open the catalog to view odds and run an opening simulation.</div>
 
     <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
       <button class="primary blue" id="btnAuto" data-i18n="autoPlace">Auto-Place</button>
@@ -597,6 +675,27 @@
   </div>
 </dialog>
 
+<dialog id="dlgPacks">
+  <div class="dlg-packs-head">
+    <h3 style="margin:0" data-i18n="packsDialogTitle">Packs</h3>
+    <button class="ghost" id="packsClose" title="Close" style="width:auto;padding:4px 10px">✕</button>
+  </div>
+  <div class="dlg-packs-controls">
+    <label class="luck-control">
+      <span><span data-i18n="luckLabel">Luck</span>: <b id="luckValLabel">0%</b></span>
+      <input type="range" id="luckSlider" min="0" max="50" step="10" value="0" list="luckTicks">
+      <datalist id="luckTicks">
+        <option value="0"></option><option value="10"></option><option value="20"></option>
+        <option value="30"></option><option value="40"></option><option value="50"></option>
+      </datalist>
+    </label>
+    <button class="primary blue" id="btnSimulate" style="width:auto;padding:6px 14px" data-i18n="simulate">Simulate</button>
+  </div>
+  <div class="legend" data-i18n="luckHint" style="margin-bottom:8px">Higher luck shifts weighted odds toward rarer drops. Each simulation re-rolls.</div>
+  <div id="packsList" class="dlg-packs-grid"></div>
+  <div id="simResult" class="sim-result"></div>
+</dialog>
+
 <button id="btnTutorial" data-i18n="tutOpen">Quick Tutorial</button>
 
 <script id="embeddedState">window.__EMBEDDED_STATE__ = null;</script>
@@ -612,6 +711,7 @@ const I18N = {
     save:'Save', saved:'Saved.', share:'Share', shareDone:'HTML with your data downloaded. Send that file.',
     saveSetup:'Save Setup', loadSetup:'Load Setup', setupSaved:'Setup file downloaded.', setupLoaded:'Setup loaded.', setupInvalid:'Invalid setup file.',
     sortCheap:'Cheapest', sortExpensive:'Expensive', onlyAvail:'Available only',
+    catDrills:'Drills', catSolar:'Solar panels',
     tutOpen:'Quick Tutorial', tutClose:'Got it', tutTitle:'Quick Tutorial',
     tutBody:`
       <p>Plan an optimal drill layout for <b>Oil Empire!</b> Your saves live in this browser only. Use <b>Save Setup</b> to share or back up.</p>
@@ -651,6 +751,12 @@ const I18N = {
     `,
     // Panels
     inventory:'Inventory', addEditMachine:'+ Add/Edit Machine Type',
+    packsTitle:'Packs', packOilCurrency:'oil', packRobuxCurrency:'robux',
+    showPacks:'Show Packs', packsPanelHint:'Open the catalog to view odds and run an opening simulation.',
+    packsDialogTitle:'Packs Catalog', luckLabel:'Luck', simulate:'Simulate',
+    luckHint:'Higher luck shifts weighted odds toward rarer drops. Each simulation re-rolls.',
+    packOpenQty:'Open this many:', simNothing:'Set a quantity on at least one pack, then press Simulate.',
+    simTotal: (n, luck) => `Simulated ${n} pack opening${n===1?'':'s'} at ${luck}% luck.`,
     paletteLegend:'Number = available. <b>+/−</b> to update owned. Drag chip → place in zone. ✎ to edit. Hover chip + <b>W/S</b>: reorder.',
     zonesLegend:'Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Hover + <span class="kbd">X</span>: disable/enable slot. Double-click a slot: remove machine.',
     investmentTitle:'Investment Suggestion',
@@ -661,6 +767,19 @@ const I18N = {
     gasPh:'e.g. 1.5M', moneyPh:'e.g. 1B', timePh:'e.g. 5m, 2h, 1d, 30s',
     threeWayHint:'Type in one → the other two are solved using current production rate.',
     machineCalc:'Machine Calculator',
+    goldenCalc:'Golden Machine',
+    goldenDrillsIn:'Drill rate',
+    goldenWanted:'Goldens wanted',
+    goldenChance:'success per attempt',
+    goldenLuckLine:'1 drill → 15% · 2 → 40% · 3 → 75% · 4 → 100%',
+    goldenNeed:'need',
+    goldenHave:'have',
+    goldenAttempts:'attempts',
+    goldenExpected:'expected',
+    pickDrill:'Choose a drill',
+    solarPanels:'Solar Panels',
+    energyRate:'Energy/s',
+    energyStore:'Energy storage',
     machineCompare:'Drill Comparator',
     addOption:'+ option', compare:'Compare',
     compareHint:'Optimal placement is assumed for each option (existing placements are redistributed). The one that adds the most income wins.',
@@ -692,7 +811,7 @@ const I18N = {
     cmpCost:'Cost', cmpDelta:'Δincome', cmpPayback:'Payback',
     cmpPlacement:'Placement', cmpNoRoom:(n)=>`⚠️ no room for ${n}`,
     // Zone
-    zonePrefix:'Zone', off:'off', gasPerSec:(v)=>`${v} gas/s`,
+    zonePrefix:'Zone', off:'off', gasPerSec:(v)=>`${v} gas/s`, energyPerSec:'energy/s',
     // Slot/chip
     chipPlaced:(p,o)=>`placed ${p}/${o}`,
     available:'available', plusOwn:'+1 owned', minusOwn:'−1 owned', edit:'edit',
@@ -707,7 +826,7 @@ const I18N = {
     twoWayNoRate:' · (no production → time cannot be computed)',
     twoWayHint:'Type in one → the other two are solved.',
     // Zone tooltip
-    ttSlots:'Slots', ttEmpty:'Empty', ttIncome:'Income', ttDisabled:'DISABLED',
+    ttSlots:'Slots', ttEmpty:'Empty', ttIncome:'Income', ttEnergy:'Energy', ttDisabled:'DISABLED',
     // Taco
     tacoGas:(v)=>`${v} oil`,
     // Time units
@@ -719,6 +838,7 @@ const I18N = {
     save:'Kaydet', saved:'Kaydedildi.', share:'Paylaş', shareDone:'Verilerinle dolu HTML indirildi. Onu gönder.',
     saveSetup:'Kurulumu Kaydet', loadSetup:'Kurulumu Yükle', setupSaved:'Kurulum dosyası indirildi.', setupLoaded:'Kurulum yüklendi.', setupInvalid:'Geçersiz kurulum dosyası.',
     sortCheap:'En Ucuz', sortExpensive:'En Pahalı', onlyAvail:'Sadece mevcut',
+    catDrills:'Drilller', catSolar:'Güneş panelleri',
     tutOpen:'Hızlı Rehber', tutClose:'Anladım', tutTitle:'Hızlı Rehber',
     tutBody:`
       <p><b>Oil Empire!</b> için en iyi drill düzenini planla. Kayıtlar yalnızca bu tarayıcıda saklanır. Paylaşmak veya yedeklemek için <b>Kurulumu Kaydet</b>'i kullan.</p>
@@ -757,6 +877,12 @@ const I18N = {
       </ul>
     `,
     inventory:'Envanter', addEditMachine:'+ Makine Tipi Ekle/Düzenle',
+    packsTitle:'Paketler', packOilCurrency:'petrol', packRobuxCurrency:'robux',
+    showPacks:'Paketleri Göster', packsPanelHint:'Olasılıkları görmek ve simülasyon yapmak için kataloğu aç.',
+    packsDialogTitle:'Paket Kataloğu', luckLabel:'Şans', simulate:'Simüle Et',
+    luckHint:'Daha yüksek şans, nadir düşüşlere doğru olasılıkları kaydırır. Her simülasyon yeniden zar atar.',
+    packOpenQty:'Şu kadar aç:', simNothing:'En az bir pakete miktar girin, sonra Simüle Et\'e basın.',
+    simTotal: (n, luck) => `${n} paket açma simüle edildi, %${luck} şansla.`,
     paletteLegend:'Sayı = kullanılabilir adet. <b>+/−</b> ile sahip olduğunu güncelle. Çipi sürükle → bölgeye yerleştir. ✎ ile makineyi düzenle. Çipin üstünde <b>W/S</b>: sırayı değiştir.',
     zonesLegend:'Hover + <span class="kbd">C</span>: 2x1 slotu 2 adet 1x1\'e böler / birleştirir. Hover + <span class="kbd">X</span>: slotu devre dışı bırak/aç. Slota çift tıkla: makineyi sök.',
     investmentTitle:'Yatırım Önerisi',
@@ -767,6 +893,19 @@ const I18N = {
     gasPh:'örn 1.5M', moneyPh:'örn 1B', timePh:'örn 5m, 2h, 1d, 30s',
     threeWayHint:'Bir alana yaz → diğer ikisi mevcut üretim hızına göre çözülür.',
     machineCalc:'Makine Hesaplayıcı',
+    goldenCalc:'Altın Makine',
+    goldenDrillsIn:'Drill oranı',
+    goldenWanted:'İstenen altın',
+    goldenChance:'her denemede başarı',
+    goldenLuckLine:'1 drill → %15 · 2 → %40 · 3 → %75 · 4 → %100',
+    goldenNeed:'gerek',
+    goldenHave:'mevcut',
+    goldenAttempts:'deneme',
+    goldenExpected:'beklenen',
+    pickDrill:'Bir drill seç',
+    solarPanels:'Güneş Panelleri',
+    energyRate:'Enerji/s',
+    energyStore:'Enerji deposu',
     machineCompare:'Drill Karşılaştırıcı',
     addOption:'+ seçenek', compare:'Karşılaştır',
     compareHint:'Her seçenek için optimal yerleşim varsayılır (mevcut yerleşik makineler dahil yeniden dağıtılır). En çok gelir getiren kazanır.',
@@ -792,7 +931,7 @@ const I18N = {
     winner:'KAZANAN',
     cmpCost:'Maliyet', cmpDelta:'Δgelir', cmpPayback:'Payback',
     cmpPlacement:'Yerleşim', cmpNoRoom:(n)=>`⚠️ ${n} tanesine yer yok`,
-    zonePrefix:'Bölge', off:'kapalı', gasPerSec:(v)=>`${v} benzin/s`,
+    zonePrefix:'Bölge', off:'kapalı', gasPerSec:(v)=>`${v} benzin/s`, energyPerSec:'enerji/s',
     chipPlaced:(p,o)=>`yerleşik ${p}/${o}`,
     available:'kullanılabilir', plusOwn:'+1 sahip', minusOwn:'−1 sahip', edit:'düzenle',
     confirmReset:'Envanter, yerleşik makineler, para/benzin/bölge durumu sıfırlansın mı? (Kayıtlı makine tipleri kalır.)',
@@ -803,7 +942,7 @@ const I18N = {
     twoWayWithRate:(rate,t)=>` · üretim ${rate}/s ile ${t}`,
     twoWayNoRate:' · (üretim 0 → süre hesaplanamaz)',
     twoWayHint:'Bir alana yaz → diğer ikisi çözülür.',
-    ttSlots:'Slot', ttEmpty:'Boş', ttIncome:'Gelir', ttDisabled:'KAPALI',
+    ttSlots:'Slot', ttEmpty:'Boş', ttIncome:'Gelir', ttEnergy:'Enerji', ttDisabled:'KAPALI',
     tacoGas:(v)=>`${v} petrol`,
     uS:'sn', uM:'dk', uH:'sa', uD:'gün',
   },
@@ -834,11 +973,11 @@ const ZONE_MULTS = [3,5,3, 2,2,2, 1,1,1, 1,1,1];
 const SLOT_SHAPES = ['L','M','L','M','S','M','L','M','L'];
 const STORAGE_KEY = 'idle-optimizer-v1';
 
-const DEFAULT_MACHINES = [
+const BASE_DRILLS = [
   {id:'mini_ruby',    name:'Mini Ruby Drill',    cost:0,             rate:67,    size:'S'},
   {id:'mini_diamond', name:'Mini Diamond Drill', cost:0,             rate:100,   size:'S'},
   {id:'quantum',      name:'Quantum Drill',      cost:0,             rate:175,   size:'M'},
-  {id:'plasma',       name:'Plasma Drill',      cost:4500000,       rate:50,    size:'L'},
+  {id:'plasma',       name:'Plasma Drill',      cost:4500000,       rate:50,    size:'S'},
   {id:'hugelong',     name:'Huge Long Drill',   cost:40000000,      rate:220,   size:'L'},
   {id:'megaplasma',   name:'Mega Plasma Drill', cost:95000000,      rate:275,   size:'L'},
   {id:'multi',        name:'Multi Drill',       cost:280000000,     rate:350,   size:'L'},
@@ -852,6 +991,50 @@ const DEFAULT_MACHINES = [
   {id:'radium',       name:'Radium Drill',       cost:810000000000,  rate:18000, size:'L'},
   {id:'palladium',    name:'Palladium Drill',    cost:1200000000000, rate:25000, size:'L'},
   {id:'thorium',      name:'Thorium Drill',      cost:2100000000000, rate:37500, size:'L'},
+];
+const GOLDEN_DRILLS = BASE_DRILLS.map(m => ({
+  id: 'gold_' + m.id,
+  name: 'Golden ' + m.name,
+  cost: m.cost * 4,
+  rate: m.rate * 3,
+  size: m.size,
+  kind: 'golden',
+  baseId: m.id,
+}));
+const SOLAR_PANELS = [
+  {id:'solar_s', name:'Small Solar Panel',  cost:510000000,    rate:0, size:'S', kind:'solar', energy:1,  storage:50},
+  {id:'solar_m', name:'Medium Solar Panel', cost:8300000000,   rate:0, size:'M', kind:'solar', energy:10, storage:500},
+  {id:'solar_l', name:'Large Solar Panel',  cost:65000000000,  rate:0, size:'L', kind:'solar', energy:50, storage:5000},
+];
+const DEFAULT_MACHINES = [...BASE_DRILLS, ...GOLDEN_DRILLS, ...SOLAR_PANELS];
+
+const DEFAULT_PACKS = [
+  {
+    id: 'infinity',
+    name: 'Infinity Pack',
+    icon: 'packs/Infinity Pack.png',
+    price: 1500000,
+    currency: 'oil',
+    items: [
+      {machineId:'plasma',    chance:45},
+      {machineId:'mini_ruby', chance:45},
+      {machineId:'quantum',   chance:10},
+    ],
+  },
+  {
+    id: 'rainbow',
+    name: 'Rainbow Lucky Pack',
+    icon: 'packs/Rainbow Lucky Pack.png',
+    price: 229,
+    currency: 'robux',
+    items: [
+      {machineId:'plasma',       chance:35},
+      {machineId:'mini_ruby',    chance:30},
+      {machineId:'quantum',      chance:30},
+      {machineId:'mini_diamond', chance: 5},
+      {machineId:'multi',        chance: 1},
+    ],
+  },
 ];
 
 // ============ STATE ============
@@ -874,6 +1057,7 @@ function makeFreshState(){
     theme: 'dark',
     invSort: null,
     invOnlyAvailable: false,
+    invCategory: null, // null=both, 'drills', 'solar'
   };
 }
 function placedCount(machineId){
@@ -917,6 +1101,7 @@ function loadState(){
     if(s.theme !== 'light' && s.theme !== 'dark') s.theme = 'dark';
     if(s.invSort !== 'cheap' && s.invSort !== 'expensive') s.invSort = null;
     if(typeof s.invOnlyAvailable !== 'boolean') s.invOnlyAvailable = false;
+    if(s.invCategory !== 'drills' && s.invCategory !== 'solar') s.invCategory = null;
     // Migrate slots: ensure disabled/subDisabled fields exist on every slot
     for(const zone of s.zones){
       if(!zone.slots) continue;
@@ -933,7 +1118,7 @@ function loadState(){
     const defaultById = new Map(DEFAULT_MACHINES.map(m => [m.id, m]));
     for(const m of s.catalog){
       const d = defaultById.get(m.id);
-      if(d) m.name = d.name;
+      if(d){ m.name = d.name; m.size = d.size; }
     }
     const canonicalByName = new Map();
     for(const m of DEFAULT_MACHINES) canonicalByName.set(m.name.toLowerCase(), m.id);
@@ -989,12 +1174,35 @@ function loadState(){
       s.zones[i].mult = ZONE_MULTS[i];
       if(typeof s.zones[i].disabled !== 'boolean') s.zones[i].disabled = false;
     }
+    // Unplace any machine whose size no longer matches its slot shape (e.g. Plasma L->S resize).
+    // Inventory counts are untouched, so the drill returns to the available pool automatically.
+    const sizeById = new Map(s.catalog.map(m => [m.id, m.size]));
+    for(const zone of s.zones){
+      if(!zone.slots) continue;
+      for(const slot of zone.slots){
+        if(slot.machine){
+          const sz = sizeById.get(slot.machine);
+          if(sz && sz !== slot.shape) slot.machine = null;
+        }
+        if(Array.isArray(slot.sub)){
+          for(let i=0;i<slot.sub.length;i++){
+            const sm = slot.sub[i];
+            if(sm){
+              const sz = sizeById.get(sm);
+              if(sz && sz !== 'S') slot.sub[i] = null;
+            }
+          }
+        }
+      }
+    }
     return s;
   } catch(e){ return null; }
 }
 
 // ============ HELPERS ============
 function machineById(id){ return state.catalog.find(m => m.id === id) || null; }
+function isSolar(id){ const m = machineById(id); return !!(m && m.kind==='solar'); }
+function isGolden(id){ const m = machineById(id); return !!(m && m.kind==='golden'); }
 
 function parseNum(str){
   if(typeof str === 'number') return str;
@@ -1117,16 +1325,133 @@ function totals(){
   }
   return {rate:r, income:inc};
 }
+function energyTotals(){
+  let energy=0, storage=0;
+  for(const it of iterSlots({skipDisabled:true})){
+    if(!it.machine) continue;
+    const m = machineById(it.machine);
+    if(!m || m.kind!=='solar') continue;
+    energy  += m.energy  || 0;
+    storage += m.storage || 0;
+  }
+  return {energy, storage};
+}
 
 // ============ RENDER ============
 function render(){
   renderHeader();
   renderPalette();
+  renderPacks();
   renderZones();
   renderCalculator();
   if(typeof refreshCmpOptions === 'function') refreshCmpOptions();
+  if(typeof refreshGoldenOptions === 'function') refreshGoldenOptions();
   if(typeof recalc3way === 'function') recalc3way();
+  if(typeof recalcGolden === 'function') recalcGolden();
   saveState();
+}
+function renderPacks(){
+  const host = document.getElementById('packsList');
+  if(!host) return;
+  const oilLbl = T('packOilCurrency');
+  const robuxLbl = T('packRobuxCurrency');
+  const openLbl = T('packOpenQty');
+  const parts = [];
+  for(const pack of DEFAULT_PACKS){
+    const rows = pack.items.map(it => {
+      const m = state.catalog.find(c => c.id === it.machineId);
+      if(!m) return '';
+      return `<div class="pack-row">`
+        + `<span class="pack-pct" style="--p:${it.chance}%">${it.chance}%</span>`
+        + `<span class="pack-name">${m.name}</span>`
+        + `<span class="pack-stats">${fmt(m.rate)}/s · ${m.size}</span>`
+        + `</div>`;
+    }).join('');
+    const priceTxt = pack.currency === 'oil'
+      ? `${fmt(pack.price)} ${oilLbl}`
+      : `${pack.price} ${robuxLbl}`;
+    const prevQty = (renderPacks._qty && renderPacks._qty[pack.id]) || 0;
+    parts.push(
+      `<div class="pack-card" data-pack-id="${pack.id}">`
+      + `<img class="pack-icon" src="${pack.icon}" alt="${pack.name}" onerror="this.style.visibility='hidden'">`
+      + `<div class="pack-body">`
+      +   `<div class="pack-head"><b>${pack.name}</b>`
+      +   `<span class="pack-price ${pack.currency}">${priceTxt}</span></div>`
+      +   rows
+      +   `<div class="pack-qty-row"><span>${openLbl}</span>`
+      +     `<input type="number" min="0" max="10000" step="1" value="${prevQty}" data-pack-qty="${pack.id}">`
+      +   `</div>`
+      + `</div></div>`
+    );
+  }
+  host.innerHTML = parts.join('');
+}
+renderPacks._qty = {};
+
+// ============ PACK SIMULATOR ============
+// Luck-adjusted weight: at luck=0, weight = chance. At luck=50, weight = chance * (1 + 0.5 * (50/chance - 1)),
+// so a 1% drop boosts ~25x while a 45% drop barely moves. Renormalized across the pack.
+function packWeights(pack, luckPct){
+  const k = Math.max(0, Math.min(50, luckPct)) / 100;
+  const raw = pack.items.map(it => {
+    const c = Math.max(0.5, it.chance);
+    return it.chance * (1 + k * (50 / c - 1));
+  });
+  const sum = raw.reduce((a,b) => a + b, 0) || 1;
+  return raw.map(w => w / sum); // normalized 0..1
+}
+function rollPack(pack, weights){
+  const r = Math.random();
+  let acc = 0;
+  for(let i=0;i<weights.length;i++){
+    acc += weights[i];
+    if(r < acc) return pack.items[i].machineId;
+  }
+  return pack.items[pack.items.length - 1].machineId;
+}
+function simulatePacks(){
+  const luck = parseFloat(document.getElementById('luckSlider').value) || 0;
+  const resultEl = document.getElementById('simResult');
+  const blocks = [];
+  let totalOpened = 0;
+  for(const pack of DEFAULT_PACKS){
+    const qty = Math.max(0, Math.floor(parseFloat(
+      (document.querySelector(`[data-pack-qty="${pack.id}"]`) || {}).value
+    ) || 0));
+    if(!qty) continue;
+    totalOpened += qty;
+    renderPacks._qty[pack.id] = qty;
+    const weights = packWeights(pack, luck);
+    const tally = {};
+    for(let i=0;i<qty;i++){
+      const id = rollPack(pack, weights);
+      tally[id] = (tally[id] || 0) + 1;
+    }
+    const rows = pack.items.map((it, idx) => {
+      const m = state.catalog.find(c => c.id === it.machineId);
+      const name = m ? m.name : it.machineId;
+      const got = tally[it.machineId] || 0;
+      const expected = (weights[idx] * qty);
+      return `<div class="sim-row">`
+        + `<span>${name} <span class="pack-stats">(${it.chance}% base)</span></span>`
+        + `<span class="sim-count">${got}×</span>`
+        + `<span class="sim-exp">~${expected.toFixed(2)} expected</span>`
+        + `</div>`;
+    }).join('');
+    blocks.push(
+      `<div class="sim-pack-block">`
+      + `<div class="sim-pack-title">${pack.name} — ${qty}× opened</div>`
+      + rows
+      + `</div>`
+    );
+  }
+  if(!totalOpened){
+    resultEl.innerHTML = `<span style="color:var(--muted);font-style:italic">${T('simNothing')}</span>`;
+    return;
+  }
+  blocks.push(`<div class="sim-total">${T('simTotal', totalOpened, luck)}</div>`);
+  resultEl.innerHTML = blocks.join('');
+  if(typeof beep === 'function' && !state.muted) try{ beep(660, 0.04, 'square', 0.04); }catch(e){}
 }
 function renderHeader(){
   document.getElementById('money').value = fmt(state.money);
@@ -1136,6 +1461,9 @@ function renderHeader(){
   const t = totals();
   tweenNumber(document.getElementById('totalRate'), t.rate, '/s');
   tweenNumber(document.getElementById('totalIncome'), t.income, '/s');
+  const e = energyTotals();
+  const eEl = document.getElementById('totalEnergy');
+  if(eEl) tweenNumber(eEl, e.energy, '/s');
   // Taco value: from observed ratio, one taco is roughly 25.88 seconds worth of gas at current production rate.
   const TACO_SECONDS = 25.88;
   const tv = document.getElementById('tacoValue');
@@ -1149,29 +1477,43 @@ function renderHeader(){
 function renderPalette(){
   const el = document.getElementById('palette');
   el.innerHTML = '';
-  let list = state.catalog.slice();
+  const drills = state.catalog.filter(m => m.kind !== 'solar');
+  const solars = state.catalog.filter(m => m.kind === 'solar');
+  let list = drills.slice();
   if(state.invOnlyAvailable) list = list.filter(m => availableCount(m.id) > 0);
-  if(state.invSort === 'cheap') list.sort((a,b)=>a.cost-b.cost);
-  else if(state.invSort === 'expensive') list.sort((a,b)=>b.cost-a.cost);
+  if(state.invSort === 'cheap'){
+    list.sort((a,b)=> (a.cost-b.cost) || ((a.baseId||a.id).localeCompare(b.baseId||b.id)) || ((a.kind==='golden')-(b.kind==='golden')));
+  } else if(state.invSort === 'expensive'){
+    list.sort((a,b)=> (b.cost-a.cost) || ((a.baseId||a.id).localeCompare(b.baseId||b.id)) || ((a.kind==='golden')-(b.kind==='golden')));
+  }
   document.querySelectorAll('#invControls button[data-sort]').forEach(b => {
     b.classList.toggle('active', b.dataset.sort === state.invSort);
   });
+  document.querySelectorAll('#invControls button[data-cat]').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === state.invCategory);
+  });
   const oa = document.getElementById('invOnlyAvail');
   if(oa) oa.classList.toggle('active', !!state.invOnlyAvailable);
-  for(const m of list){
+  const renderChip = (m) => {
     const avail = availableCount(m.id);
     const owned = ownedCount(m.id);
     const placed = placedCount(m.id);
     const chip = document.createElement('div');
-    chip.className = 'chip' + (avail<=0 ? ' disabled' : '');
+    let cls = 'chip' + (avail<=0 ? ' disabled' : '');
+    if(m.kind==='golden') cls += ' chip-gold';
+    if(m.kind==='solar')  cls += ' chip-solar';
+    chip.className = cls;
     chip.draggable = avail > 0;
     chip.dataset.machineId = m.id;
+    const extraMeta = m.kind==='solar'
+      ? `<div class="meta">${fmt(m.cost)} · ⚡${fmt(m.energy)}/s · 🔋${fmt(m.storage)}</div>`
+      : `<div class="meta">${fmt(m.cost)} → ${fmt(m.rate)}/s</div>`;
     chip.innerHTML = `
       <div class="chip-grab" style="display:flex;align-items:center;flex:1;min-width:0;cursor:${avail>0?'grab':'default'}">
         <span class="swatch ${m.size}"></span>
         <div style="min-width:0">
           <div><b>${m.name}</b> <span class="meta">${m.size==='L'?'2x2':m.size==='M'?'2x1':'1x1'}</span> · <span class="meta">${T('chipPlaced', placed, owned)}</span></div>
-          <div class="meta">${fmt(m.cost)} → ${fmt(m.rate)}/s</div>
+          ${extraMeta}
         </div>
       </div>
       <span class="qty ${avail<=0?'zero':''}" title="${T('available')}">${avail}</span>
@@ -1190,6 +1532,18 @@ function renderPalette(){
     chip.addEventListener('mouseenter', () => { hoveredChip = m.id; });
     chip.addEventListener('mouseleave', () => { if(hoveredChip === m.id) hoveredChip = null; });
     el.appendChild(chip);
+  };
+  const showDrills = state.invCategory !== 'solar';
+  const showSolars = state.invCategory !== 'drills';
+  if(showDrills) for(const m of list) renderChip(m);
+  if(showSolars && solars.length){
+    if(showDrills){
+      const divider = document.createElement('div');
+      divider.className = 'palette-divider';
+      divider.innerHTML = `<span data-i18n="solarPanels">${T('solarPanels')}</span>`;
+      el.appendChild(divider);
+    }
+    for(const m of solars) renderChip(m);
   }
   el.querySelectorAll('button[data-inc]').forEach(b => {
     b.onclick = (e) => { e.stopPropagation(); const id=b.dataset.inc; state.inventory[id]=ownedCount(id)+1; render(); };
@@ -1205,9 +1559,10 @@ function renderZones(){
     const zone = state.zones[z];
     const card = document.createElement('div');
     card.className = 'zone' + (zone.disabled ? ' off' : '');
-    let rate = 0, income = 0;
+    let rate = 0, income = 0, energy = 0;
     let shapeCounts = {L:0, M:0, S:0};
     let emptyCounts = {L:0, M:0, S:0};
+    const addEnergy = (id) => { const mm = machineById(id); if(mm && mm.kind==='solar') energy += (mm.energy||0); };
     for(let s=0; s<zone.slots.length; s++){
       const slot = zone.slots[s];
       if(slot.shape === 'M' && slot.split){
@@ -1216,6 +1571,7 @@ function renderZones(){
           if(slot.sub[i]){
             rate += slotRate(slot.sub[i], zone.mult);
             income += slotIncome(slot.sub[i], zone.mult);
+            addEnergy(slot.sub[i]);
           } else emptyCounts.S++;
         }
       } else {
@@ -1223,6 +1579,7 @@ function renderZones(){
         if(slot.machine){
           rate += slotRate(slot.machine, zone.mult);
           income += slotIncome(slot.machine, zone.mult);
+          addEnergy(slot.machine);
         } else emptyCounts[slot.shape]++;
       }
     }
@@ -1238,6 +1595,7 @@ function renderZones(){
         <div class="tt-row"><span>${T('ttSlots')}:</span><b>${slotStr}</b></div>
         <div class="tt-row"><span>${T('ttEmpty')}:</span><b>${emptyStr}</b></div>
         <div class="tt-row"><span>${T('ttIncome')}:</span><b>${fmt(income)}/s</b></div>
+        ${energy>0 ? `<div class="tt-row"><span>${T('ttEnergy')}:</span><b>⚡ +${fmt(energy)}/s</b></div>` : ''}
       </div>
     `;
     card.querySelector('.toggle').onclick = (e) => {
@@ -1269,7 +1627,8 @@ function renderSlot(z, s, slot){
       const id = slot.sub[i];
       if(id){
         const m = machineById(id);
-        sub.innerHTML = `<div class="name">${m.name}</div>`;
+        const extra = (m.kind==='solar') ? `<div class="rate">⚡ ${fmt(m.energy||0)}</div>` : '';
+        sub.innerHTML = `<div class="name">${m.name}</div>${extra}`;
       } else {
         sub.classList.add('empty');
         sub.innerHTML = '<div class="shape-label">1×1</div>';
@@ -1284,7 +1643,10 @@ function renderSlot(z, s, slot){
     div.className = 'slot ' + slot.shape;
     if(slot.machine){
       const m = machineById(slot.machine);
-      div.innerHTML = `<div class="name">${m.name}</div><div class="rate">${T('gasPerSec', fmt(slotRate(m.id, state.zones[z].mult)))}</div>`;
+      const rateLine = (m.kind==='solar')
+        ? `<div class="rate">⚡ ${fmt(m.energy||0)} ${T('energyPerSec')}</div>`
+        : `<div class="rate">${T('gasPerSec', fmt(slotRate(m.id, state.zones[z].mult)))}</div>`;
+      div.innerHTML = `<div class="name">${m.name}</div>${rateLine}`;
     } else {
       div.classList.add('empty');
       const lbl = slot.shape === 'L' ? '2×2' : slot.shape === 'M' ? '2×1' : '1×1';
@@ -1476,6 +1838,13 @@ document.querySelectorAll('#invControls button[data-sort]').forEach(b => {
   b.onclick = () => {
     const v = b.dataset.sort;
     state.invSort = (state.invSort === v) ? null : v;
+    saveState(); render();
+  };
+});
+document.querySelectorAll('#invControls button[data-cat]').forEach(b => {
+  b.onclick = () => {
+    const v = b.dataset.cat;
+    state.invCategory = (state.invCategory === v) ? null : v;
     saveState(); render();
   };
 });
@@ -1752,19 +2121,24 @@ function autoPlaceOn(simZones, extraInventory){
   if(extraInventory){
     for(const id in extraInventory) inv[id] = (inv[id]||0) + extraInventory[id];
   }
-  // Wipe placements, but preserve drills sitting in disabled slots (placeholders).
-  // Also account for them in the inventory pool so we don't double-count.
+  // Wipe placements, but preserve drills sitting in disabled slots (placeholders)
+  // and any solar panels (auto-place never moves solars).
+  // Account for preserved placements in the inventory pool so we don't double-count.
   for(let z=0; z<simZones.length; z++){
     for(let s=0; s<simZones[z].slots.length; s++){
       const slot = simZones[z].slots[s];
       if(slot.shape==='M' && slot.split){
         for(let i=0;i<2;i++){
-          if(slot.subDisabled && slot.subDisabled[i] && slot.sub[i]){
-            inv[slot.sub[i]] = Math.max(0, (inv[slot.sub[i]]||0) - 1);
+          const subId = slot.sub[i];
+          const subIsSolar = subId && isSolar(subId);
+          if(subIsSolar || (slot.subDisabled && slot.subDisabled[i] && subId)){
+            inv[subId] = Math.max(0, (inv[subId]||0) - 1);
           } else {
             slot.sub[i] = null;
           }
         }
+      } else if(slot.machine && isSolar(slot.machine)){
+        inv[slot.machine] = Math.max(0, (inv[slot.machine]||0) - 1);
       } else if(slot.disabled && slot.machine){
         inv[slot.machine] = Math.max(0, (inv[slot.machine]||0) - 1);
       } else {
@@ -1775,6 +2149,7 @@ function autoPlaceOn(simZones, extraInventory){
   }
   const bySize = {L:[], M:[], S:[]};
   for(const m of state.catalog){
+    if(m.kind === 'solar') continue; // solars are never auto-placed
     const owned = inv[m.id]||0;
     for(let i=0;i<owned;i++) bySize[m.size].push(m.id);
   }
@@ -2066,6 +2441,68 @@ function updateAfford(){
 document.getElementById('targetMachine').onchange = updateAfford;
 document.getElementById('targetQty').oninput = updateAfford;
 
+// ============ GOLDEN CONVERSION ============
+const GOLDEN_LUCK = {1:0.15, 2:0.40, 3:0.75, 4:1.00};
+let gLastEdited = 'goldenIn';
+function refreshGoldenOptions(){
+  const sel = document.getElementById('goldenBase');
+  if(!sel) return;
+  const cur = sel.value;
+  const opts = state.catalog
+    .filter(m => m.kind !== 'golden' && m.kind !== 'solar')
+    .sort((a,b)=> a.cost - b.cost)
+    .map(m => `<option value="${m.id}">${m.name}</option>`)
+    .join('');
+  sel.innerHTML = `<option value="">- ${T('pickDrill')} -</option>` + opts;
+  if(cur && state.catalog.find(m=>m.id===cur)) sel.value = cur;
+}
+function recalcGolden(){
+  const card = document.getElementById('goldenResult');
+  if(!card) return;
+  const baseId = document.getElementById('goldenBase').value;
+  const base   = machineById(baseId);
+  let inN = Math.max(1, Math.min(4, parseInt(document.getElementById('goldenIn').value)||1));
+  document.getElementById('goldenIn').value = inN;
+  let wanted = Math.max(1, Math.floor(parseFloat(document.getElementById('goldenWanted').value)||1));
+  document.getElementById('goldenWanted').value = wanted;
+
+  // If user edited 'goldenWanted', always assume n=4 (100% success per attempt).
+  if(gLastEdited === 'goldenWanted'){
+    inN = 4;
+    document.getElementById('goldenIn').value = inN;
+  }
+
+  const p = GOLDEN_LUCK[inN];
+  const attempts = Math.ceil(wanted / p);
+  const totalDrills = attempts * inN;
+  const expectedGoldens = (p * attempts).toFixed(2);
+
+  let baseName = base ? base.name : T('pickDrill');
+  let avail = base ? availableCount(base.id) : 0;
+  let ready = base && avail >= totalDrills;
+  let extra = '';
+  if(base){
+    extra = ` · ${T('goldenNeed')} <b>${totalDrills}× ${base.name}</b> (${attempts} ${T('goldenAttempts')})`
+          + ` · ${T('goldenHave')} <b>${avail}</b>`;
+  }
+  card.className = 'afford-card' + (ready ? ' ready' : '');
+  card.innerHTML = `
+    <div class="big">${Math.round(p*100)}%<span class="unit">${T('goldenChance')}</span></div>
+    <div class="sub">${baseName} · ${inN} ${T('goldenDrillsIn')} → ${wanted} ${T('goldenWanted')} (~${expectedGoldens} ${T('goldenExpected')})${extra}</div>
+    <div class="sub" style="margin-top:4px;opacity:.75">${T('goldenLuckLine')}</div>
+  `;
+}
+['goldenIn','goldenWanted','goldenBase'].forEach(id => {
+  const el = document.getElementById(id);
+  if(!el) return;
+  const onEdit = () => {
+    if(id !== 'goldenBase') gLastEdited = id;
+    recalcGolden();
+  };
+  el.addEventListener('input',  onEdit);
+  el.addEventListener('change', onEdit);
+});
+
 // 3-way calculator (gas <-> money <-> time)
 const cBenzin = document.getElementById('cBenzin');
 const cPara   = document.getElementById('cPara');
@@ -2206,6 +2643,29 @@ document.getElementById('tutClose').onclick = () => {
 };
 document.getElementById('dlgTutorial').addEventListener('click', (e) => {
   if(e.target.id === 'dlgTutorial') e.target.close();
+});
+
+// Packs dialog
+const _dlgPacks = document.getElementById('dlgPacks');
+document.getElementById('btnShowPacks').onclick = () => {
+  renderPacks();
+  document.getElementById('simResult').innerHTML = '';
+  document.getElementById('luckValLabel').textContent =
+    document.getElementById('luckSlider').value + '%';
+  _dlgPacks.showModal();
+};
+document.getElementById('packsClose').onclick = () => _dlgPacks.close();
+_dlgPacks.addEventListener('click', (e) => {
+  if(e.target.id === 'dlgPacks') _dlgPacks.close();
+});
+document.getElementById('luckSlider').addEventListener('input', (e) => {
+  document.getElementById('luckValLabel').textContent = e.target.value + '%';
+});
+document.getElementById('btnSimulate').onclick = simulatePacks;
+// Persist user-entered quantities across re-renders
+_dlgPacks.addEventListener('input', (e) => {
+  const id = e.target.dataset && e.target.dataset.packQty;
+  if(id) renderPacks._qty[id] = Math.max(0, Math.floor(parseFloat(e.target.value) || 0));
 });
 
 // Button ripple effect: only on .primary/.ghost/.danger
