@@ -285,7 +285,6 @@
   <button class="ghost" id="btnSaveSetup" data-i18n="saveSetup">Save Setup</button>
   <button class="ghost" id="btnLoadSetup" data-i18n="loadSetup">Load Setup</button>
   <input type="file" id="loadSetupFile" accept=".json,.txt,application/json" style="display:none">
-  <button class="ghost" id="btnShare" data-i18n="share" title="Download a copy of this HTML with your current data baked in, so you can send it to others">Share<span class="ripple" style="height: 81.9763px; width: 81.9763px; left: 6.11499px; top: -31.0476px;"></span></button>
 </header>
 
 <main>
@@ -740,7 +739,7 @@ const I18N = {
     // Header
     money:'💲 Money', gas:'⛽ Oil Stock', sellPrice:'💲 Sell price (×)', bonus:'Bonus (e.g. 4.75 = 475%)',
     totalRate:'⛽ Total production/s', totalIncome:'💲 Total money/s', tacoValue:'🌮 Taco value',
-    save:'Save', saved:'Saved.', share:'Share', shareDone:'HTML with your data downloaded. Send that file.',
+    save:'Save', saved:'Saved.',
     saveSetup:'Save Setup', loadSetup:'Load Setup', setupSaved:'Setup file downloaded.', setupLoaded:'Setup loaded.', setupInvalid:'Invalid setup file.',
     sortCheap:'Cheapest', sortExpensive:'Expensive', onlyAvail:'Available only',
     catDrills:'Drills', catSolar:'Solar panels',
@@ -777,7 +776,6 @@ const I18N = {
       <ul>
         <li><b>🇺🇸 / 🇹🇷</b>: switch language. <b>🔊</b>: mute sounds.</li>
         <li><b>Save Setup</b> downloads a JSON file (placements + inventory + bonus). <b>Load Setup</b> reads one back.</li>
-        <li><b>Share</b> downloads this HTML with your data embedded; send it to a friend and they'll see your setup.</li>
         <li><b>Reset</b> (bottom of right panel) wipes everything.</li>
       </ul>
     `,
@@ -868,7 +866,7 @@ const I18N = {
   tr: {
     money:'💲 Para', gas:'⛽ Petrol Stoğu', sellPrice:'💲 Satış fiyatı (×)', bonus:'Bonus (örn 4.75 = %475)',
     totalRate:'⛽ Toplam üretim/s', totalIncome:'💲 Toplam para/s', tacoValue:'🌮 Taco değeri',
-    save:'Kaydet', saved:'Kaydedildi.', share:'Paylaş', shareDone:'Verilerinle dolu HTML indirildi. Onu gönder.',
+    save:'Kaydet', saved:'Kaydedildi.',
     saveSetup:'Kurulumu Kaydet', loadSetup:'Kurulumu Yükle', setupSaved:'Kurulum dosyası indirildi.', setupLoaded:'Kurulum yüklendi.', setupInvalid:'Geçersiz kurulum dosyası.',
     sortCheap:'En Ucuz', sortExpensive:'En Pahalı', onlyAvail:'Sadece mevcut',
     catDrills:'Drilller', catSolar:'Güneş panelleri',
@@ -905,7 +903,6 @@ const I18N = {
       <ul>
         <li><b>🇺🇸 / 🇹🇷</b>: dil değiştir. <b>🔊</b>: sesi kapat.</li>
         <li><b>Kurulumu Kaydet</b> JSON dosyası indirir. <b>Kurulumu Yükle</b> geri yükler.</li>
-        <li><b>Paylaş</b>: verilerini içine gömülmüş bir HTML indirir; arkadaşına gönderirsin.</li>
         <li><b>Sıfırla</b> (sağ panel alt): her şeyi siler.</li>
       </ul>
     `,
@@ -1020,10 +1017,10 @@ const BASE_DRILLS = [
   {id:'crystal',      name:'Crystal Drill',      cost:9000000000,    rate:1500,  size:'L'},
   {id:'diamond',      name:'Diamond Drill',      cost:27500000000,   rate:2750,  size:'L'},
   {id:'ruby',         name:'Ruby Drill',         cost:85500000000,   rate:4500,  size:'L'},
-  {id:'fusion',       name:'Fusion Drill',       cost:137500000000,  rate:7500,  size:'L'},
+  {id:'fusion',       name:'Fusion Drill',       cost:187500000000,  rate:7500,  size:'L'},
   {id:'uranium',      name:'Uranium Drill',      cost:437500000000,  rate:12500, size:'L'},
   {id:'radium',       name:'Radium Drill',       cost:810000000000,  rate:18000, size:'L'},
-  {id:'palladium',    name:'Palladium Drill',    cost:1200000000000, rate:25000, size:'L'},
+  {id:'palladium',    name:'Palladium Drill',    cost:1290000000000, rate:25000, size:'L'},
   {id:'thorium',      name:'Thorium Drill',      cost:2100000000000, rate:37500, size:'L'},
 ];
 const GOLDEN_DRILLS = BASE_DRILLS.map(m => ({
@@ -1154,7 +1151,7 @@ function loadState(){
     const defaultById = new Map(DEFAULT_MACHINES.map(m => [m.id, m]));
     for(const m of s.catalog){
       const d = defaultById.get(m.id);
-      if(d){ m.name = d.name; m.size = d.size; if(d.image) m.image = d.image; }
+      if(d){ m.name = d.name; m.size = d.size; m.cost = d.cost; m.rate = d.rate; if(d.image) m.image = d.image; }
     }
     // Legacy short names → canonical default IDs (from before drills had a " Drill" suffix).
     // Catches saved custom entries like {name:'Lava'} that should fold into {name:'Lava Drill'}.
@@ -2048,36 +2045,6 @@ document.getElementById('loadSetupFile').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
-document.getElementById('btnShare').onclick = async () => {
-  saveState();
-  let html = null;
-  try{
-    const res = await fetch(location.href);
-    if(res.ok) html = await res.text();
-  }catch(e){}
-  if(!html){
-    // file:// fallback: serialize current DOM (palette/zones get rebuilt by render() on open, so static markup is fine).
-    html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-  }
-  const json = JSON.stringify(state);
-  const replacement = '<script id="embeddedState">window.__EMBEDDED_STATE__ = ' + json.replace(/</g,'\\u003c') + ';<\/script>';
-  const re = /<script id="embeddedState">[\s\S]*?<\/script>/;
-  if(re.test(html)){
-    html = html.replace(re, replacement);
-  } else {
-    html = html.replace(/<script>\s*"use strict";/, replacement + '\n<script>\n"use strict";');
-  }
-  const blob = new Blob([html], {type:'text/html'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  const base = (location.pathname.split(/[\\/]/).pop() || 'oil calculator.html').replace(/\.html?$/i,'');
-  a.download = base + ' (shared).html';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
-  flashSuggestion(T('shareDone'));
-};
-
 // Remove every placed machine and return them to inventory as available.
 document.getElementById('btnCollect').onclick = () => {
   let n = 0;
@@ -2876,6 +2843,41 @@ function floatGainAt(x, y, text){
 // Drag/pickup sound: same drop sound as placement so the drag feels tactile.
 document.getElementById('palette').addEventListener('dragstart', () => SFX.drop(), true);
 document.getElementById('zones').addEventListener('dragstart', () => SFX.drop(), true);
+
+// Edge auto-scroll while dragging a chip/machine, so users can drag into bottom zones
+// without releasing. Native browser drag auto-scroll is too slow / inconsistent, so we
+// run our own rAF loop and feed it coords from every drag-related event we can get.
+(function(){
+  const EDGE = 120;       // px from top/bottom edge that triggers scrolling
+  const MAX_SPEED = 28;   // px per frame at the very edge
+  let dragging = false;
+  let pointerY = -1;
+  let raf = 0;
+  function tick(){
+    if(!dragging){ raf = 0; return; }
+    raf = requestAnimationFrame(tick);
+    if(pointerY < 0) return;
+    const h = window.innerHeight;
+    let dy = 0;
+    if(pointerY < EDGE)         dy = -MAX_SPEED * (1 - pointerY / EDGE);
+    else if(pointerY > h-EDGE)  dy =  MAX_SPEED * (1 - (h - pointerY) / EDGE);
+    if(dy) window.scrollBy(0, dy);
+  }
+  function track(e){ if(typeof e.clientY === 'number') pointerY = e.clientY; }
+  document.addEventListener('dragstart', () => {
+    dragging = true;
+    pointerY = -1;
+    if(!raf) raf = requestAnimationFrame(tick);
+  }, true);
+  // Use multiple event types — different browsers fire some more reliably than others
+  // while the pointer is near a viewport edge.
+  document.addEventListener('drag',     track, true);
+  document.addEventListener('dragover', track, true);
+  document.addEventListener('dragenter',track, true);
+  function stop(){ dragging = false; pointerY = -1; }
+  document.addEventListener('dragend', stop, true);
+  document.addEventListener('drop',    stop, true);
+})();
 
 // ============ INIT ============
 addCmpRow();
