@@ -38,6 +38,8 @@
   #zones{min-width:0}
   .disabled-slot{opacity:.35;outline:1px dashed #c84a4a;background:repeating-linear-gradient(45deg,rgba(200,74,74,.08) 0 6px,transparent 6px 12px)}
   .disabled-slot .name, .disabled-slot .rate{text-decoration:line-through;color:#bbb}
+  .locked-slot{outline:1px solid #d4a72c;box-shadow:inset 0 0 0 1px rgba(212,167,44,.25)}
+  .lock-badge{position:absolute;top:2px;right:4px;font-size:11px;line-height:1;pointer-events:none;z-index:3;text-shadow:0 1px 2px rgba(0,0,0,.7);user-select:none}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
   h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
   /* Zones */
@@ -67,7 +69,7 @@
   .slot.split.horizontal{flex-direction:row}
   .slot.split.horizontal .sub{height:100%;aspect-ratio:1}
   .slot.split.vertical   .sub{width:100%;aspect-ratio:1}
-  .slot.split .sub{background:var(--S);color:var(--S-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:4px}
+  .slot.split .sub{background:var(--S);color:var(--S-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:4px;position:relative}
   .slot.split .sub.empty{opacity:.55}
   .slot.split .sub.dragover{outline:2px solid var(--ok)}
   .slot.split .sub.best{outline:2px solid var(--hi)}
@@ -587,7 +589,7 @@
         <div class="tt-row"><span>Income:</span><b>0/s</b></div>
       </div>
     </div></div>
-    <div class="legend" style="margin-top:8px" data-i18n="zonesLegend">Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Hover + <span class="kbd">X</span>: disable/enable slot. Double-click a slot: remove drill.</div>
+    <div class="legend" style="margin-top:8px" data-i18n="zonesLegend">Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Hover + <span class="kbd">X</span>: disable/enable slot. Hover + <span class="kbd">L</span>: lock the drill in that slot (🔒 — auto-place / collect won't touch it; empty slot → same as X). Double-click a slot: remove drill.</div>
   </div>
 
   <!-- RIGHT: Suggestions / calculator -->
@@ -749,21 +751,28 @@ const I18N = {
       <h4>Getting started</h4>
       <ul>
         <li>Set <b>Sell price</b> and <b>Bonus</b> at the top to match your in-game values.</li>
-        <li>Use <b>+/-</b> on each chip in the Inventory to enter how many of each drill you own.</li>
+        <li>Use <b>+/-</b> on each chip in the Inventory to enter how many of each drill you own. <b>+ Add drill</b> creates a custom drill type.</li>
         <li>Drag a chip from the Inventory into a matching slot (size must match: 2×2, 2×1, or 1×1).</li>
-        <li>Click <b>Auto-Place</b> to let the optimizer fill every zone with your best layout.</li>
+        <li>Click <b>Auto-Place</b> to let the optimizer fill every zone with your best layout, or <b>Collect Drills</b> to pull every drill back into the inventory.</li>
       </ul>
       <h4>Zones &amp; slots</h4>
       <ul>
         <li>Each of the 12 zones has a multiplier (3×, 5×, 2×, 1×). Higher = more income.</li>
         <li>Click the <b>✓</b> in a zone corner to disable the whole zone (it stops contributing income but keeps its placements).</li>
         <li>Double-click a slot to remove the drill in it.</li>
+        <li>Drag-to-scroll: click-and-drag empty space in the zones grid to pan around.</li>
       </ul>
-      <h4>Keyboard shortcuts</h4>
+      <h4>Keyboard shortcuts (hover a slot, then press)</h4>
       <ul>
-        <li>Hover a 2×1 slot + <span class="kbd">C</span>: split it into two 1×1 (or merge back).</li>
-        <li>Hover any slot + <span class="kbd">X</span>: disable / enable just that slot.</li>
+        <li><span class="kbd">C</span>: split a 2×1 slot into two 1×1 (or merge back when both are empty).</li>
+        <li><span class="kbd">X</span>: disable / enable just that slot (or sub-slot).</li>
+        <li><span class="kbd">L</span>: <b>lock</b> the drill in that slot (🔒) — it can't be removed, swapped, auto-placed over, or collected until you press <span class="kbd">L</span> again. If the slot is empty, <span class="kbd">L</span> acts like <span class="kbd">X</span>.</li>
         <li>Hover an inventory chip + <span class="kbd">W</span> / <span class="kbd">S</span>: move it up / down in the list.</li>
+      </ul>
+      <h4>Solar panels &amp; golden drills</h4>
+      <ul>
+        <li>Solar panels (S/M/L) live in the Inventory under <b>Solar panels</b>. They generate <b>⚡ energy/s</b> instead of oil and are never moved by Auto-Place.</li>
+        <li>Each base drill has a <b>Golden</b> variant — same size, 3× rate, 4× cost. Use the <b>Golden Drill</b> widget to see how many attempts you need at a given drill-count luck (15/40/75/100%).</li>
       </ul>
       <h4>Right panel tools</h4>
       <ul>
@@ -771,6 +780,7 @@ const I18N = {
         <li><b>All-In Calculator</b>: fill in Oil / Money / Energy / Time, the others are solved.</li>
         <li><b>Drill Calculator</b>: pick a drill + qty to see how long until you can afford it.</li>
         <li><b>Drill Comparator</b>: compare combos of drill purchases by income delta.</li>
+        <li><b>Packs</b>: open the catalog to see drop odds and run a luck-weighted opening simulation.</li>
       </ul>
       <h4>Header buttons</h4>
       <ul>
@@ -789,7 +799,7 @@ const I18N = {
     packOpenQty:'Open this many:', simNothing:'Set a quantity on at least one pack, then press Simulate.',
     simTotal: (n, luck) => `Simulated ${n} pack opening${n===1?'':'s'} at ${luck}% luck.`,
     paletteLegend:'Number = available. <b>+/−</b> to update owned. Drag chip → place in zone. ✎ to edit. Hover chip + <b>W/S</b>: reorder.',
-    zonesLegend:'Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Hover + <span class="kbd">X</span>: disable/enable slot. Double-click a slot: remove drill.',
+    zonesLegend:'Hover + <span class="kbd">C</span>: split/merge 2x1 slot into two 1x1. Hover + <span class="kbd">X</span>: disable/enable slot. Hover + <span class="kbd">L</span>: lock the drill in that slot (🔒 — auto-place / collect won\'t touch it; empty slot → same as X). Double-click a slot: remove drill.',
     investmentTitle:'Investment Suggestion',
     budgetPh:'Budget (e.g. 1T)', invest:'Suggest', autoPlace:'Auto-Place',
     noSuggestion:'No suggestion yet.',
@@ -872,38 +882,46 @@ const I18N = {
     catDrills:'Drilller', catSolar:'Güneş panelleri',
     tutOpen:'Hızlı Rehber', tutClose:'Anladım', tutTitle:'Hızlı Rehber',
     tutBody:`
-      <p><b>Oil Empire!</b> için en iyi drill düzenini planla. Kayıtlar yalnızca bu tarayıcıda saklanır. Paylaşmak veya yedeklemek için <b>Kurulumu Kaydet</b>'i kullan.</p>
+      <p><b>Oil Empire!</b> için en iyi drill düzenini planla. Kayıtlar yalnızca bu tarayıcıda tutulur. Paylaşmak veya yedeklemek için <b>Kurulumu Kaydet</b>'i kullan.</p>
       <h4>Başlangıç</h4>
       <ul>
-        <li>Üstteki <b>Sell price</b> ve <b>Bonus</b> değerlerini oyundaki değerlerine ayarla.</li>
-        <li>Envanterdeki her çipte <b>+/-</b> ile sahip olduğun drill adedini gir.</li>
-        <li>Çipi envanterden boyuta uygun bir slota sürükle (2×2, 2×1 veya 1×1).</li>
-        <li><b>Otomatik Yerleştir</b>'e tıkla; optimizer en iyi düzeni oluşturur.</li>
+        <li>Üstteki <b>Satış fiyatı</b> ve <b>Bonus</b> değerlerini oyundakiyle eşleştir.</li>
+        <li>Envanterdeki her çipte <b>+/-</b> ile sahip olduğun drill sayısını gir. <b>+ Drill ekle</b> ile özel bir drill tipi oluşturabilirsin.</li>
+        <li>Çipi envanterden boyutuna uygun bir slota sürükle (2×2, 2×1 veya 1×1 olmalı).</li>
+        <li><b>Otomatik Yerleştir</b> en iyi düzeni kurar; <b>Drilleri Topla</b> tüm drillleri envantere geri çeker.</li>
       </ul>
       <h4>Bölgeler &amp; slotlar</h4>
       <ul>
-        <li>12 bölgenin her birinde çarpan vardır (3×, 5×, 2×, 1×). Yüksek = daha fazla gelir.</li>
-        <li>Bölgenin köşesindeki <b>✓</b>'ya tıkla: tüm bölgeyi devre dışı bırak (yerleşimler korunur).</li>
+        <li>12 bölgenin her birinin bir çarpanı var (3×, 5×, 2×, 1×). Yüksek çarpan = daha fazla gelir.</li>
+        <li>Bölgenin köşesindeki <b>✓</b>'ya tıkla: tüm bölgeyi devre dışı bırakır (yerleşik drilller kalır ama gelir üretmez).</li>
         <li>Bir slota çift tıkla: içindeki drilli söker.</li>
+        <li>Sürükle-kaydır: bölge ızgarasındaki boş alana basılı tutup sürükleyerek görünümü kaydırabilirsin.</li>
       </ul>
-      <h4>Klavye kısayolları</h4>
+      <h4>Klavye kısayolları (slota gel, sonra bas)</h4>
       <ul>
-        <li>2×1 slotun üzerine gel + <span class="kbd">C</span>: ikiye böl / birleştir.</li>
-        <li>Herhangi bir slotun üzerine gel + <span class="kbd">X</span>: o slotu devre dışı bırak / aç.</li>
-        <li>Envanter çipinin üzerine gel + <span class="kbd">W</span> / <span class="kbd">S</span>: listede yukarı / aşağı taşı.</li>
+        <li><span class="kbd">C</span>: 2×1 slotu iki 1×1'e böl (ya da ikisi de boşken birleştir).</li>
+        <li><span class="kbd">X</span>: o slotu (veya alt slotu) devre dışı bırak / aç.</li>
+        <li><span class="kbd">L</span>: slottaki drilli <b>kilitle</b> (🔒) — tekrar <span class="kbd">L</span>'ye basana kadar sökülemez, değiştirilemez, otomatik yerleştirme ve toplama ona dokunmaz. Slot boşsa <span class="kbd">L</span> aynı <span class="kbd">X</span> gibi çalışır.</li>
+        <li>Envanter çipinin üstüne gel + <span class="kbd">W</span> / <span class="kbd">S</span>: listede yukarı / aşağı taşı.</li>
+      </ul>
+      <h4>Güneş panelleri &amp; altın drilller</h4>
+      <ul>
+        <li>Güneş panelleri (S/M/L) envanterde <b>Güneş panelleri</b> altında. Petrol değil <b>⚡ enerji/s</b> üretirler ve otomatik yerleştirme onları yerinden oynatmaz.</li>
+        <li>Her temel drillin bir <b>Altın</b> varyantı var — aynı boyut, 3× üretim, 4× fiyat. <b>Altın Drill</b> widget'ı, seçtiğin drill sayısı şansıyla (%15/40/75/100) kaç deneme gerektiğini hesaplar.</li>
       </ul>
       <h4>Sağ panel araçları</h4>
       <ul>
-        <li><b>Yatırım Önerisi</b>: bir bütçe yaz (örn. <code>500B</code>, <code>2T</code>); alım planı çıkar.</li>
-        <li><b>Hepsi-bir-Arada Hesap</b>: Petrol / Para / Enerji / Süre alanlarından birini doldur, diğerleri hesaplanır.</li>
-        <li><b>Drill Hesap</b>: drill ve adet seç, kazanma süresini gör.</li>
-        <li><b>Drill Karşılaştırıcı</b>: drill alım kombinasyonlarını gelir farkına göre karşılaştır.</li>
+        <li><b>Yatırım Önerisi</b>: bir bütçe yaz (örn. <code>500B</code>, <code>2T</code>); alım planı çıkarır.</li>
+        <li><b>Hepsi-bir-Arada Hesap</b>: Petrol / Para / Enerji / Süre alanlarından birini doldur, kalanlar mevcut üretimle çözülür.</li>
+        <li><b>Drill Hesaplayıcı</b>: bir drill + adet seç, kazanmak için ne kadar süre gerektiğini gör.</li>
+        <li><b>Drill Karşılaştırıcı</b>: farklı drill alım kombinasyonlarını gelir farkına göre karşılaştır.</li>
+        <li><b>Paketler</b>: olasılıkları görmek ve şansla ağırlıklı bir açma simülasyonu çalıştırmak için kataloğu aç.</li>
       </ul>
-      <h4>Header butonları</h4>
+      <h4>Üst bar butonları</h4>
       <ul>
-        <li><b>🇺🇸 / 🇹🇷</b>: dil değiştir. <b>🔊</b>: sesi kapat.</li>
-        <li><b>Kurulumu Kaydet</b> JSON dosyası indirir. <b>Kurulumu Yükle</b> geri yükler.</li>
-        <li><b>Sıfırla</b> (sağ panel alt): her şeyi siler.</li>
+        <li><b>🇺🇸 / 🇹🇷</b>: dili değiştirir. <b>🔊</b>: sesi açıp kapatır.</li>
+        <li><b>Kurulumu Kaydet</b> bir JSON dosyası indirir (yerleşim + envanter + bonus). <b>Kurulumu Yükle</b> bu dosyayı geri okur.</li>
+        <li><b>Sıfırla</b> (sağ panelin altında): her şeyi siler.</li>
       </ul>
     `,
     inventory:'Envanter', addEditMachine:'+ Drill Tipi Ekle/Düzenle',
@@ -915,7 +933,7 @@ const I18N = {
     packOpenQty:'Şu kadar aç:', simNothing:'En az bir pakete miktar girin, sonra Simüle Et\'e basın.',
     simTotal: (n, luck) => `${n} paket açma simüle edildi, %${luck} şansla.`,
     paletteLegend:'Sayı = kullanılabilir adet. <b>+/−</b> ile sahip olduğunu güncelle. Çipi sürükle → bölgeye yerleştir. ✎ ile drilli düzenle. Çipin üstünde <b>W/S</b>: sırayı değiştir.',
-    zonesLegend:'Hover + <span class="kbd">C</span>: 2x1 slotu 2 adet 1x1\'e böler / birleştirir. Hover + <span class="kbd">X</span>: slotu devre dışı bırak/aç. Slota çift tıkla: drilli sök.',
+    zonesLegend:'Slotun üzerine gel + <span class="kbd">C</span>: 2x1 slotu iki 1x1\'e böl / birleştir. + <span class="kbd">X</span>: slotu devre dışı bırak / aç. + <span class="kbd">L</span>: slottaki drilli kilitle (🔒 — otomatik yerleştirme / topla ona dokunmaz; slot boşsa X ile aynı). Slota çift tıkla: drilli sök.',
     investmentTitle:'Yatırım Önerisi',
     budgetPh:'Bütçe (örn 1T)', invest:'Yatırım Öner', autoPlace:'Otomatik Yerleştir',
     noSuggestion:'Henüz öneri yok.',
@@ -1075,7 +1093,7 @@ let state = loadState() || makeFreshState();
 function makeFreshState(){
   const zones = ZONE_MULTS.map(m => ({
     mult: m, disabled: false,
-    slots: SLOT_SHAPES.map(shape => ({shape, machine:null, split:false, sub:[null,null], disabled:false, subDisabled:[false,false]}))
+    slots: SLOT_SHAPES.map(shape => ({shape, machine:null, split:false, sub:[null,null], disabled:false, subDisabled:[false,false], locked:false, subLocked:[false,false]}))
   }));
   return {
     zones,
@@ -1141,6 +1159,8 @@ function loadState(){
       for(const slot of zone.slots){
         if(typeof slot.disabled !== 'boolean') slot.disabled = false;
         if(!Array.isArray(slot.subDisabled)) slot.subDisabled = [false,false];
+        if(typeof slot.locked !== 'boolean') slot.locked = false;
+        if(!Array.isArray(slot.subLocked)) slot.subLocked = [false,false];
       }
     }
     // Dedupe catalog by name (case-insensitive). Prefer DEFAULT_MACHINES IDs so future
@@ -1340,10 +1360,12 @@ function* iterSlots(opts){
         if(skipDisabled && slot.disabled) continue;
         for(let i=0;i<2;i++){
           if(skipDisabled && slot.subDisabled && slot.subDisabled[i]) continue;
+          if(skipDisabled && slot.subLocked && slot.subLocked[i]) continue;
           yield {zoneIdx:z, slotIdx:s, subIdx:i, shape:'S', machine:slot.sub[i]};
         }
       } else {
         if(skipDisabled && slot.disabled) continue;
+        if(skipDisabled && slot.locked) continue;
         yield {zoneIdx:z, slotIdx:s, subIdx:-1, shape:slot.shape, machine:slot.machine};
       }
     }
@@ -1771,6 +1793,11 @@ function renderSlot(z, s, slot){
         sub.innerHTML = '<div class="shape-label">1×1</div>';
       }
       if(slot.subDisabled && slot.subDisabled[i]) sub.classList.add('disabled-slot');
+      if(slot.subLocked && slot.subLocked[i]){
+        sub.classList.add('locked-slot');
+        const lk = document.createElement('div'); lk.className = 'lock-badge'; lk.textContent = '🔒';
+        sub.appendChild(lk);
+      }
       attachDnD(sub, z, s, i, 'S');
       sub.addEventListener('mouseenter', (e) => { e.stopPropagation(); hoveredSlot = {z,s,sub:i,shape:'S'}; hoveredM = null; });
       sub.addEventListener('mouseleave', () => { if(hoveredSlot && hoveredSlot.z===z && hoveredSlot.s===s && hoveredSlot.sub===i) hoveredSlot = null; });
@@ -1790,6 +1817,11 @@ function renderSlot(z, s, slot){
       div.innerHTML = `<div class="shape-label">${lbl}</div>`;
     }
     if(slot.disabled) div.classList.add('disabled-slot');
+    if(slot.locked){
+      div.classList.add('locked-slot');
+      const lk = document.createElement('div'); lk.className = 'lock-badge'; lk.textContent = '🔒';
+      div.appendChild(lk);
+    }
     attachDnD(div, z, s, -1, slot.shape);
   }
   // Hover tracking - hoveredSlot for X key (any slot), hoveredM for C key (M only)
@@ -1805,6 +1837,7 @@ function renderSlot(z, s, slot){
   div.addEventListener('dblclick', e => {
     e.preventDefault();
     if(slot.shape === 'M' && slot.split) return; // sub handles its own dblclick
+    if(slot.locked) return;
     if(slot.machine){ slot.machine = null; clearSuggestions(); render(); if(typeof SFX !== 'undefined') SFX.drop(); }
   });
   return div;
@@ -1826,7 +1859,7 @@ function attachDnD(el, z, s, sub, shape){
   // Allow dragging out of filled slots
   if(sub === -1){
     const slot = state.zones[z].slots[s];
-    if(slot.machine){
+    if(slot.machine && !slot.locked){
       el.draggable = true;
       el.addEventListener('dragstart', e => {
         e.dataTransfer.setData('text/plain', JSON.stringify({source:'slot', z, s, sub:-1, machineId: slot.machine}));
@@ -1836,7 +1869,8 @@ function attachDnD(el, z, s, sub, shape){
   } else {
     const slot = state.zones[z].slots[s];
     const id = slot.sub[sub];
-    if(id){
+    const subIsLocked = slot.subLocked && slot.subLocked[sub];
+    if(id && !subIsLocked){
       el.draggable = true;
       el.addEventListener('dragstart', e => {
         e.dataTransfer.setData('text/plain', JSON.stringify({source:'slot', z, s, sub, machineId: id}));
@@ -1845,6 +1879,7 @@ function attachDnD(el, z, s, sub, shape){
     }
     el.addEventListener('dblclick', e => {
       e.stopPropagation();
+      if(slot.subLocked && slot.subLocked[sub]) return;
       if(slot.sub[sub]){ slot.sub[sub] = null; clearSuggestions(); render(); if(typeof SFX !== 'undefined') SFX.drop(); }
     });
   }
@@ -1853,6 +1888,16 @@ function attachDnD(el, z, s, sub, shape){
 function handleDrop(data, target, el){
   const m = machineById(data.machineId);
   if(!m) return;
+  const targetSlot = state.zones[target.z].slots[target.s];
+  const targetLocked = target.sub === -1
+    ? targetSlot.locked
+    : (targetSlot.subLocked && targetSlot.subLocked[target.sub]);
+  if(targetLocked){
+    el.classList.add('bad');
+    setTimeout(()=>el.classList.remove('bad'), 400);
+    if(typeof SFX !== 'undefined') SFX.bad();
+    return;
+  }
   if(m.size !== target.shape){
     el.classList.add('bad');
     setTimeout(()=>el.classList.remove('bad'), 400);
@@ -1923,6 +1968,29 @@ window.addEventListener('keydown', e => {
       slot.subDisabled[hoveredSlot.sub] = !slot.subDisabled[hoveredSlot.sub];
     } else {
       slot.disabled = !slot.disabled;
+    }
+    clearSuggestions();
+    render();
+    return;
+  }
+  // L: lock occupied slot (prevents removal + skipped by auto-place/collect).
+  //    If slot is empty, falls back to disable/enable (same as X).
+  if(k === 'l' && hoveredSlot){
+    const slot = state.zones[hoveredSlot.z].slots[hoveredSlot.s];
+    if(hoveredSlot.sub >= 0){
+      if(!slot.subLocked) slot.subLocked = [false,false];
+      if(!slot.subDisabled) slot.subDisabled = [false,false];
+      if(slot.sub[hoveredSlot.sub]){
+        slot.subLocked[hoveredSlot.sub] = !slot.subLocked[hoveredSlot.sub];
+      } else {
+        slot.subDisabled[hoveredSlot.sub] = !slot.subDisabled[hoveredSlot.sub];
+      }
+    } else {
+      if(slot.machine){
+        slot.locked = !slot.locked;
+      } else {
+        slot.disabled = !slot.disabled;
+      }
     }
     clearSuggestions();
     render();
@@ -2028,6 +2096,8 @@ document.getElementById('loadSetupFile').addEventListener('change', (e) => {
         for(const slot of zone.slots){
           if(typeof slot.disabled !== 'boolean') slot.disabled = false;
           if(!Array.isArray(slot.subDisabled)) slot.subDisabled = [false,false];
+          if(typeof slot.locked !== 'boolean') slot.locked = false;
+          if(!Array.isArray(slot.subLocked)) slot.subLocked = [false,false];
         }
       }
       state.inventory = data.inventory || {};
@@ -2049,12 +2119,18 @@ document.getElementById('loadSetupFile').addEventListener('change', (e) => {
 document.getElementById('btnCollect').onclick = () => {
   let n = 0;
   for(const it of iterSlots()){
-    if(it.machine){ setSlotMachine(it.zoneIdx, it.slotIdx, it.subIdx, null); n++; }
+    if(!it.machine) continue;
+    const slot = state.zones[it.zoneIdx].slots[it.slotIdx];
+    const isLocked = it.subIdx === -1 ? slot.locked : (slot.subLocked && slot.subLocked[it.subIdx]);
+    if(isLocked) continue;
+    setSlotMachine(it.zoneIdx, it.slotIdx, it.subIdx, null);
+    n++;
   }
-  // Also merge any split M slots back since they are now empty.
+  // Also merge any split M slots back since they are now empty (skip locked subs).
   for(const zone of state.zones){
     for(const slot of zone.slots){
-      if(slot.shape === 'M' && slot.split && !slot.sub[0] && !slot.sub[1]){
+      if(slot.shape === 'M' && slot.split && !slot.sub[0] && !slot.sub[1]
+         && !(slot.subLocked && (slot.subLocked[0] || slot.subLocked[1]))){
         slot.split = false;
       }
     }
@@ -2243,7 +2319,8 @@ function autoPlaceOn(simZones, extraInventory){
         for(let i=0;i<2;i++){
           const subId = slot.sub[i];
           const subIsSolar = subId && isSolar(subId);
-          if(subIsSolar || (slot.subDisabled && slot.subDisabled[i] && subId)){
+          const subLocked = slot.subLocked && slot.subLocked[i];
+          if(subIsSolar || (slot.subDisabled && slot.subDisabled[i] && subId) || (subLocked && subId)){
             inv[subId] = Math.max(0, (inv[subId]||0) - 1);
           } else {
             slot.sub[i] = null;
@@ -2251,7 +2328,7 @@ function autoPlaceOn(simZones, extraInventory){
         }
       } else if(slot.machine && isSolar(slot.machine)){
         inv[slot.machine] = Math.max(0, (inv[slot.machine]||0) - 1);
-      } else if(slot.disabled && slot.machine){
+      } else if((slot.disabled || slot.locked) && slot.machine){
         inv[slot.machine] = Math.max(0, (inv[slot.machine]||0) - 1);
       } else {
         slot.machine = null;
@@ -2274,10 +2351,12 @@ function autoPlaceOn(simZones, extraInventory){
       if(slot.shape==='M' && slot.split){
         for(let i=0;i<2;i++){
           if(slot.subDisabled && slot.subDisabled[i]) continue;
+          if(slot.subLocked && slot.subLocked[i]) continue;
           dest.S.push({z,s,sub:i,mult:simZones[z].mult});
         }
       } else {
         if(slot.disabled) continue;
+        if(slot.locked) continue;
         dest[slot.shape].push({z,s,sub:-1,mult:simZones[z].mult});
       }
     }
