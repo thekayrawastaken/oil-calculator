@@ -1653,6 +1653,12 @@ function renderPalette(){
 function renderAddDrillModal(){
   const grid = document.getElementById('addDrillGrid');
   if(!grid) return;
+  try{ _renderAddDrillModalInner(grid); }
+  catch(e){
+    grid.innerHTML = `<div style="grid-column:1/-1;color:#f88;padding:12px;border:1px solid #f88;border-radius:6px;font-size:11px;white-space:pre-wrap">Render error: ${String(e && e.stack || e && e.message || e)}\nUA: ${navigator.userAgent}</div>`;
+  }
+}
+function _renderAddDrillModalInner(grid){
   if(!Array.isArray(state.catalog) || state.catalog.length === 0){
     state.catalog = structuredClone(DEFAULT_MACHINES);
     saveState();
@@ -1718,6 +1724,17 @@ function renderAddDrillModal(){
       grid.insertAdjacentHTML('beforeend', cardHTML(base, false));
       grid.insertAdjacentHTML('beforeend', cardHTML(goldenByBase[base.id] || null, true));
     }
+  }
+
+  if(grid.children.length === 0){
+    const dbg = {
+      cat,
+      catalogIsArray: Array.isArray(state.catalog),
+      catalogLen: state.catalog && state.catalog.length,
+      sample: state.catalog && state.catalog.slice(0,3).map(m => ({id:m.id, name:m.name, kind:m.kind||null})),
+      ua: navigator.userAgent,
+    };
+    grid.innerHTML = `<div style="grid-column:1/-1;color:#fc8;padding:12px;border:1px solid #fc8;border-radius:6px;font-size:11px;white-space:pre-wrap">No cards rendered. Please send this text to the developer:\n${JSON.stringify(dbg, null, 2)}</div>`;
   }
 
   const setOwned = (id, val) => {
