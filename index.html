@@ -1022,6 +1022,10 @@ const ZONE_MULTS = [3,5,3, 2,2,2, 1,1,1, 1,1,1];
 const SLOT_SHAPES = ['L','M','L','M','S','M','L','M','L'];
 const STORAGE_KEY = 'idle-optimizer-v1';
 
+if(typeof window.structuredClone !== 'function'){
+  window.structuredClone = (o) => JSON.parse(JSON.stringify(o));
+}
+
 const BASE_DRILLS = [
   {id:'mini_ruby',    name:'Mini Ruby Drill',    cost:0,             rate:67,    size:'S'},
   {id:'mini_diamond', name:'Mini Diamond Drill', cost:0,             rate:100,   size:'S'},
@@ -1218,11 +1222,29 @@ function loadState(){
       }
     }
     s.catalog = cleaned;
+    const catalogById = new Map(s.catalog.map(c => [c.id, c]));
     for(const m of DEFAULT_MACHINES){
       const key = m.name.toLowerCase();
       if(!keptByName.has(key)){
         s.catalog.push(structuredClone(m));
         keptByName.set(key, m.id);
+      } else {
+        const kept = catalogById.get(m.id);
+        if(kept){
+          const keptKind = kept.kind || null;
+          const defKind = m.kind || null;
+          if(keptKind !== defKind || kept.size !== m.size){
+            kept.name = m.name;
+            kept.size = m.size;
+            kept.cost = m.cost;
+            kept.rate = m.rate;
+            if(defKind) kept.kind = m.kind; else delete kept.kind;
+            if(m.baseId) kept.baseId = m.baseId;
+            if(m.image) kept.image = m.image;
+            if(m.energy != null) kept.energy = m.energy;
+            if(m.storage != null) kept.storage = m.storage;
+          }
+        }
       }
     }
     if(Object.keys(idRemap).length){
@@ -1631,6 +1653,10 @@ function renderPalette(){
 function renderAddDrillModal(){
   const grid = document.getElementById('addDrillGrid');
   if(!grid) return;
+  if(!Array.isArray(state.catalog) || state.catalog.length === 0){
+    state.catalog = structuredClone(DEFAULT_MACHINES);
+    saveState();
+  }
   const cat = state.addDrillCategory || 'drills';
   // Sync active state on tabs/sort
   document.querySelectorAll('#dlgAddDrill button[data-cat]').forEach(b => {
