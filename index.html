@@ -1373,6 +1373,7 @@ function fmtTime(seconds){
 // yields {zoneIdx, slotIdx, subIdx (or -1), shape, machine}
 function* iterSlots(opts){
   const skipDisabled = opts && opts.skipDisabled;
+  const skipLocked = opts && opts.skipLocked;
   for(let z=0; z<state.zones.length; z++){
     const zone = state.zones[z];
     if(skipDisabled && zone.disabled) continue;
@@ -1382,12 +1383,12 @@ function* iterSlots(opts){
         if(skipDisabled && slot.disabled) continue;
         for(let i=0;i<2;i++){
           if(skipDisabled && slot.subDisabled && slot.subDisabled[i]) continue;
-          if(skipDisabled && slot.subLocked && slot.subLocked[i]) continue;
+          if(skipLocked && slot.subLocked && slot.subLocked[i]) continue;
           yield {zoneIdx:z, slotIdx:s, subIdx:i, shape:'S', machine:slot.sub[i]};
         }
       } else {
         if(skipDisabled && slot.disabled) continue;
-        if(skipDisabled && slot.locked) continue;
+        if(skipLocked && slot.locked) continue;
         yield {zoneIdx:z, slotIdx:s, subIdx:-1, shape:slot.shape, machine:slot.machine};
       }
     }
@@ -2267,7 +2268,7 @@ function highlightSlot(z, s, sub){
 // All candidate "place" moves (only into empty slots, machine size == slot shape)
 function enumeratePlaceMoves(){
   const moves = [];
-  for(const it of iterSlots({skipDisabled:true})){
+  for(const it of iterSlots({skipDisabled:true, skipLocked:true})){
     if(it.machine) continue;
     for(const m of state.catalog){
       if(m.size !== it.shape) continue;
@@ -2289,7 +2290,7 @@ function enumeratePlaceMoves(){
 // Upgrade moves: replace a machine with a higher-rate one of same size in same slot
 function enumerateUpgradeMoves(){
   const moves = [];
-  for(const it of iterSlots({skipDisabled:true})){
+  for(const it of iterSlots({skipDisabled:true, skipLocked:true})){
     if(!it.machine) continue;
     const cur = machineById(it.machine);
     if(!cur) continue;
@@ -2318,7 +2319,7 @@ function enumerateRelocations(){
   const moves = [];
   const filled = [];
   const empty = [];
-  for(const it of iterSlots({skipDisabled:true})){
+  for(const it of iterSlots({skipDisabled:true, skipLocked:true})){
     if(it.machine) filled.push(it); else empty.push(it);
   }
   for(const f of filled){
