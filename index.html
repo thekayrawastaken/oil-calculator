@@ -275,7 +275,7 @@
   <div class="stat"><span data-i18n="money">Money</span><b><input id="money" type="text" value="0"></b></div>
   <div class="stat"><span data-i18n="gas">Oil Stock</span><b><input id="gas" type="text" value="0"></b></div>
   <div class="stat"><span data-i18n="sellPrice">Sell price (×)</span><b><input id="sellPrice" type="number" step="0.01" value="15"></b></div>
-  <div class="stat"><span data-i18n="bonus">Bonus (e.g. 4.75 = 475%)</span><b><input id="bonus" type="number" step="0.01" value="4.75"></b></div>
+  <div class="stat"><span data-i18n="bonus">Bonus × (e.g. 4.75 = ×4.75 / 475%)</span><b><input id="bonus" type="number" step="0.01" value="4.75"></b></div>
   <div class="stat"><span data-i18n="totalRate">Total production/s</span><b id="totalRate" data-raw="709522">709.52K/s</b></div>
   <div class="stat"><span data-i18n="totalIncome">Total money/s</span><b id="totalIncome" data-raw="61196272.5">61.20M/s</b></div>
   <div class="stat"><span data-i18n="tacoValue">Taco value</span><b id="tacoValue" data-raw="18362429.36">18.36M gas</b></div>
@@ -452,6 +452,14 @@
     </div></div>
   </div>
 
+  <div class="panel">
+    <h3 data-i18n="feedbackTitle">Feedback</h3>
+    <textarea id="fbMsg" data-i18n-ph="fbPh" placeholder="What's broken / what should change?" rows="3" style="width:100%;min-width:0;resize:vertical;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px;font:inherit;box-sizing:border-box"></textarea>
+    <a href="https://prnt.sc" target="_blank" rel="noopener noreferrer" id="fbImgHelp" data-i18n="fbImgHelp" style="display:block;margin-top:6px;font-size:11px;color:#5aa8ff;text-decoration:underline;cursor:pointer">How to add image</a>
+    <button class="primary" id="btnFeedback" data-i18n="fbSend" style="width:100%;margin-top:6px">Message Me!</button>
+    <div id="fbStatus" class="legend" style="margin-top:6px;min-height:14px"></div>
+  </div>
+
   </div>
 
   <!-- CENTER: Zones -->
@@ -604,6 +612,10 @@
       <input id="budget" type="text" data-i18n-ph="budgetPh" placeholder="Budget (e.g. 1T)">
       <button class="primary" id="btnInvest" style="width:auto;flex:0 0 auto;margin-bottom:0" data-i18n="invest">Suggest</button>
     </div>
+    <div class="row">
+      <input id="energyBudget" type="text" data-i18n-ph="energyBudgetPh" placeholder="⚡ Energy budget (0 hides goldens)">
+    </div>
+    <div class="legend" style="font-size:11px;margin:-4px 0 6px" data-i18n="energyBudgetHint">Goldens need 28K energy each. Leave 0 to skip them.</div>
     <div id="suggestion" class="suggest empty" data-i18n="noSuggestion">No suggestion yet.</div>
     <div id="moves" class="moves"></div>
 
@@ -739,7 +751,7 @@
 const I18N = {
   en: {
     // Header
-    money:'💲 Money', gas:'⛽ Oil Stock', sellPrice:'💲 Sell price (×)', bonus:'Bonus (e.g. 4.75 = 475%)',
+    money:'💲 Money', gas:'⛽ Oil Stock', sellPrice:'💲 Sell price (×)', bonus:'Bonus × (e.g. 4.75 = ×4.75 / 475%)',
     totalRate:'⛽ Total production/s', totalIncome:'💲 Total money/s', tacoValue:'🌮 Taco value',
     save:'Save', saved:'Saved.',
     saveSetup:'Save Setup', loadSetup:'Load Setup', setupSaved:'Setup file downloaded.', setupLoaded:'Setup loaded.', setupInvalid:'Invalid setup file.',
@@ -794,6 +806,10 @@ const I18N = {
     addDrillBtn:'+ Add drill', addDrillTitle:'Add drill', oilUnit:'Oil',
     packsTitle:'Packs', packOilCurrency:'oil', packRobuxCurrency:'robux',
     showPacks:'Show Packs', packsPanelHint:'Open the catalog to view odds and run an opening simulation.',
+    feedbackTitle:'Feedback', fbPh:"What's broken / what should change?", fbSend:'Message Me!',
+    fbEmpty:'Type something first.', fbSending:'Sending…', fbSent:'✅ Sent — thank you!',
+    fbFail:(e)=>`❌ Send failed (${e}).`, fbTooLong:'Too long — keep it under 1800 characters.',
+    fbImgHelp:'How to add image',
     packsDialogTitle:'Packs Catalog', luckLabel:'Luck', simulate:'Simulate',
     luckHint:'Higher luck shifts weighted odds toward rarer drops. Each simulation re-rolls.',
     packOpenQty:'Open this many:', simNothing:'Set a quantity on at least one pack, then press Simulate.',
@@ -837,13 +853,18 @@ const I18N = {
     // Suggestion messages
     enterBudget:'Enter a budget.', noInvestFound:'No useful investment found within budget.',
     sgWaitHeader:(t,name,d,p)=>`⏳ Save first: wait ${t} → ${name} · net +${d}/s · payback ${p}`,
+    sgWaitEnergyHeader:(t,name,d,p)=>`⚡ Save energy: wait ${t} → ${name} · net +${d}/s · payback ${p}`,
     sgSpendHeader:(name,c,d,p,extra)=>`Suggested: ${name} · ${c} → +${d}/s · payback ${p}${extra}`,
     noRoomTail:(n)=>` · ⚠️ no room for ${n}`,
     buyN:(qty,name)=>`Buy ${qty}× ${name}`,
     waitN:(qty,name)=>`Wait → ${qty}× ${name}`,
+    waitEnergyN:(t,qty,name)=>`⚡ Wait ${t} for energy → ${qty}× ${name}`,
     detailBuy:(qty,name,spent)=>`Buy ${qty}× ${name} (${spent})`,
     detailWait:(t,inc,need,qty,name,cost)=>`⏳ Wait ${t} (${inc}/s to save ${need}), then buy ${qty}× ${name} (${cost})`,
+    detailWaitEnergy:(t,eps,need,qty,name,cost)=>`⚡ Wait ${t} (${eps}/s to save ${need} energy), then buy ${qty}× ${name} (${cost})`,
     noRoomDetail:(n)=>` · ⚠️ no room for ${n}`,
+    energyBudgetPh:'⚡ Energy budget (0 hides goldens)',
+    energyBudgetHint:'Goldens need 28K energy each. Leave 0 to skip them.',
     // Auto-place
     autoMsg:(p,left)=>`Auto-place: ${p} drills placed${left?`, ${left} left in inventory (no room)`:''}.`,
     // Comparator
@@ -874,7 +895,7 @@ const I18N = {
     uS:'s', uM:'m', uH:'h', uD:'d',
   },
   tr: {
-    money:'💲 Para', gas:'⛽ Petrol Stoğu', sellPrice:'💲 Satış fiyatı (×)', bonus:'Bonus (örn 4.75 = %475)',
+    money:'💲 Para', gas:'⛽ Petrol Stoğu', sellPrice:'💲 Satış fiyatı (×)', bonus:'Bonus × (örn 4.75 = ×4.75 / %475)',
     totalRate:'⛽ Toplam üretim/s', totalIncome:'💲 Toplam para/s', tacoValue:'🌮 Taco değeri',
     save:'Kaydet', saved:'Kaydedildi.',
     saveSetup:'Kurulumu Kaydet', loadSetup:'Kurulumu Yükle', setupSaved:'Kurulum dosyası indirildi.', setupLoaded:'Kurulum yüklendi.', setupInvalid:'Geçersiz kurulum dosyası.',
@@ -928,6 +949,10 @@ const I18N = {
     addDrillBtn:'+ Drill ekle', addDrillTitle:'Drill ekle', oilUnit:'Petrol',
     packsTitle:'Paketler', packOilCurrency:'petrol', packRobuxCurrency:'robux',
     showPacks:'Paketleri Göster', packsPanelHint:'Olasılıkları görmek ve simülasyon yapmak için kataloğu aç.',
+    feedbackTitle:'Geri Bildirim', fbPh:'Ne bozuk / ne değişmeli?', fbSend:'Bana Yaz!',
+    fbEmpty:'Önce bir şey yaz.', fbSending:'Gönderiliyor…', fbSent:'✅ Gönderildi — teşekkürler!',
+    fbFail:(e)=>`❌ Gönderim başarısız (${e}).`, fbTooLong:'Çok uzun — 1800 karakterin altında tut.',
+    fbImgHelp:'Görsel nasıl eklenir?',
     packsDialogTitle:'Paket Kataloğu', luckLabel:'Şans', simulate:'Simüle Et',
     luckHint:'Daha yüksek şans, nadir düşüşlere doğru olasılıkları kaydırır. Her simülasyon yeniden zar atar.',
     packOpenQty:'Şu kadar aç:', simNothing:'En az bir pakete miktar girin, sonra Simüle Et\'e basın.',
@@ -968,13 +993,18 @@ const I18N = {
     paybackUnit:'geri kazanım', timeUnit:'süre',
     enterBudget:'Bütçe gir.', noInvestFound:'Bütçeyle anlamlı bir yatırım bulunamadı.',
     sgWaitHeader:(t,name,d,p)=>`⏳ Önce biriktir: ${t} bekle → ${name} · net +${d}/s · payback ${p}`,
+    sgWaitEnergyHeader:(t,name,d,p)=>`⚡ Enerji biriktir: ${t} bekle → ${name} · net +${d}/s · payback ${p}`,
     sgSpendHeader:(name,c,d,p,extra)=>`Öneri: ${name} · ${c} → +${d}/s · payback ${p}${extra}`,
     noRoomTail:(n)=>` · ⚠️ ${n} adet yer bulamadı`,
     buyN:(qty,name)=>`${qty}× ${name}`,
     waitN:(qty,name)=>`Bekle → ${qty}× ${name}`,
+    waitEnergyN:(t,qty,name)=>`⚡ Enerji için ${t} bekle → ${qty}× ${name}`,
     detailBuy:(qty,name,spent)=>`${qty}× ${name} satın al (${spent})`,
     detailWait:(t,inc,need,qty,name,cost)=>`⏳ ${t} bekle (${inc}/s ile ${need} biriktir), sonra ${qty}× ${name} satın al (${cost})`,
+    detailWaitEnergy:(t,eps,need,qty,name,cost)=>`⚡ ${t} bekle (${eps}/s ile ${need} enerji biriktir), sonra ${qty}× ${name} satın al (${cost})`,
     noRoomDetail:(n)=>` · ⚠️ ${n} tanesine yer yok`,
+    energyBudgetPh:'⚡ Enerji bütçesi (0 = altınları gizle)',
+    energyBudgetHint:'Altın drilller 28K enerji ister. 0 = altınları gizle.',
     autoMsg:(p,left)=>`Otomatik yerleştirme: ${p} drill yerleştirildi${left?`, ${left} drill envanterde kaldı (yer yok)`:''}.`,
     compareMin:'En az 2 seçenek gerekli.',
     winner:'KAZANAN',
@@ -1407,7 +1437,7 @@ function setSlotMachine(z,s,sub,id){
 function slotIncome(machineId, zoneMult){
   const m = machineById(machineId);
   if(!m) return 0;
-  return m.rate * zoneMult * state.sellPrice * (1 + state.bonus);
+  return m.rate * zoneMult * state.sellPrice * state.bonus;
 }
 function slotRate(machineId, zoneMult){
   const m = machineById(machineId);
@@ -2441,6 +2471,8 @@ function autoPlaceOn(simZones, extraInventory){
 }
 
 // ============ INVESTMENT SUGGESTION ============
+const GOLDEN_ENERGY_COST = 28000;
+const SAVE_UP_ENERGY_LIMIT = 1200; // 20 min in seconds
 function buildStrategies(budget){
   const cur = totals();
   const currentIncome = cur.income;
@@ -2450,12 +2482,20 @@ function buildStrategies(budget){
   // and the user's real question is "which one earns the most income?"
   const H = 86400;
   const strategies = [];
+  const energyBudget = parseNum(document.getElementById('energyBudget').value) || 0;
+  const energyPerSec = energyTotals().energy;
 
   // S1: for each machine type, "spend the whole budget on this one only"
   for(const m of state.catalog){
     if(!(m.cost > 0)) continue;
-    const qty = Math.floor(budget / m.cost);
+    let qty = Math.floor(budget / m.cost);
     if(qty <= 0) continue;
+    if(m.kind === 'golden'){
+      if(energyBudget <= 0) continue;
+      const energyCap = Math.floor(energyBudget / GOLDEN_ENERGY_COST);
+      qty = Math.min(qty, energyCap);
+      if(qty <= 0) continue;
+    }
     const spent = qty * m.cost;
     const sim = JSON.parse(JSON.stringify(state.zones));
     const r = autoPlaceOn(sim, {[m.id]: qty});
@@ -2479,6 +2519,8 @@ function buildStrategies(budget){
     for(const m of state.catalog){
       if(!(m.cost > 0)) continue;
       if(m.cost <= budget) continue;
+      // Goldens still need energy to run after the wait — require enough energy budget for 1 unit
+      if(m.kind === 'golden' && energyBudget < GOLDEN_ENERGY_COST) continue;
       const need = m.cost - budget;
       const waitTime = need / currentIncome;
       // Reject waits longer than the horizon (don't suggest waiting more than 24h)
@@ -2499,6 +2541,35 @@ function buildStrategies(budget){
         buys: [{id:m.id, qty:1}],
         headline: T('waitN', 1, m.name),
         detail: T('detailWait', fmtTime(waitTime), fmt(currentIncome), fmt(need), 1, m.name, fmt(m.cost)),
+      });
+    }
+  }
+
+  // S3: "save up energy for a golden" — only if energy budget is enabled, energy is being produced,
+  // and the user can already afford one of the golden's money cost. Limited to ≤ 20 min wait.
+  if(energyBudget > 0 && energyBudget < GOLDEN_ENERGY_COST && energyPerSec > 0){
+    for(const m of state.catalog){
+      if(m.kind !== 'golden') continue;
+      if(!(m.cost > 0)) continue;
+      if(m.cost > budget) continue; // money side is handled by S2
+      const energyShortfall = GOLDEN_ENERGY_COST - energyBudget;
+      const waitEnergy = energyShortfall / energyPerSec;
+      if(waitEnergy > SAVE_UP_ENERGY_LIMIT) continue;
+      const sim = JSON.parse(JSON.stringify(state.zones));
+      const r = autoPlaceOn(sim, {[m.id]: 1});
+      const delta = r.income - currentIncome;
+      if(delta <= 0) continue;
+      const score = delta * Math.max(60, H - waitEnergy);
+      strategies.push({
+        kind:'wait-energy', score,
+        spent: m.cost, delta,
+        payback: m.cost / delta,
+        waitEnergy,
+        placedOfNew: countPlacedOfMachine(sim, m.id),
+        qtyBought: 1,
+        buys: [{id:m.id, qty:1}],
+        headline: T('waitEnergyN', fmtTime(waitEnergy), 1, m.name),
+        detail: T('detailWaitEnergy', fmtTime(waitEnergy), fmt(energyPerSec), fmt(energyShortfall), 1, m.name, fmt(m.cost)),
       });
     }
   }
@@ -2530,6 +2601,8 @@ document.getElementById('btnInvest').onclick = () => {
   const winner = strategies[0];
   if(winner.kind === 'wait'){
     flashSuggestion(T('sgWaitHeader', fmtTime(winner.waitTime), winner.headline, fmt(winner.delta), fmtTime(winner.payback)));
+  } else if(winner.kind === 'wait-energy'){
+    flashSuggestion(T('sgWaitEnergyHeader', fmtTime(winner.waitEnergy), winner.headline, fmt(winner.delta), fmtTime(winner.payback)));
   } else {
     const extra = winner.qtyBought>winner.placedOfNew ? T('noRoomTail', winner.qtyBought-winner.placedOfNew) : '';
     flashSuggestion(T('sgSpendHeader', winner.headline, fmt(winner.spent), fmt(winner.delta), fmtTime(winner.payback), extra));
@@ -2537,8 +2610,10 @@ document.getElementById('btnInvest').onclick = () => {
   // En iyi 3 stratejiyi listele
   const moves = document.getElementById('moves');
   moves.innerHTML = strategies.slice(0,3).map((s, i) => {
-    const tag = i === 0 ? 'strategy-head' : (s.kind === 'wait' ? 'wait-banner' : '');
-    const prefix = i === 0 ? '🏆 ' : (s.kind === 'wait' ? '⏳ ' : `${i+1}. `);
+    const isWait = s.kind === 'wait' || s.kind === 'wait-energy';
+    const tag = i === 0 ? 'strategy-head' : (isWait ? 'wait-banner' : '');
+    const waitIcon = s.kind === 'wait-energy' ? '⚡ ' : '⏳ ';
+    const prefix = i === 0 ? '🏆 ' : (isWait ? waitIcon : `${i+1}. `);
     return `<div class="mv ${tag}">${prefix}${s.detail} · +${fmt(s.delta)}/s</div>`;
   }).join('');
 };
@@ -2633,9 +2708,9 @@ function renderCalculator(){
   else sel.value = '';
   updateAfford();
 }
-// Treat oil stock as cash at the effective sell price (sellPrice × (1 + bonus)),
+// Treat oil stock as cash at the effective sell price (sellPrice × bonus),
 // matching how income and the 3-way converter already value oil.
-function availableMoney(){ return state.money + state.gas * state.sellPrice * (1 + state.bonus); }
+function availableMoney(){ return state.money + state.gas * state.sellPrice * state.bonus; }
 function updateAfford(){
   const id = document.getElementById('targetMachine').value;
   const qty = Math.max(1, parseInt(document.getElementById('targetQty').value)||1);
@@ -2647,7 +2722,7 @@ function updateAfford(){
     return;
   }
   const need = m.cost * qty;
-  const oilValue = state.gas * state.sellPrice * (1 + state.bonus);
+  const oilValue = state.gas * state.sellPrice * state.bonus;
   const have = availableMoney();
   const t = totals();
   const remaining = need - have;
@@ -2745,8 +2820,8 @@ const cEnergy = document.getElementById('cEnergy');
 const cSure   = document.getElementById('cSure');
 const cOut    = document.getElementById('calcOut');
 let cLastEdited = null;
-function gasToMoney(g){ return g * state.sellPrice * (1 + state.bonus); }
-function moneyToGas(m){ const k = state.sellPrice * (1 + state.bonus); return k>0 ? m/k : 0; }
+function gasToMoney(g){ return g * state.sellPrice * state.bonus; }
+function moneyToGas(m){ const k = state.sellPrice * state.bonus; return k>0 ? m/k : 0; }
 function recalc3way(){
   const t = totals();
   const en = energyTotals();
@@ -3001,6 +3076,33 @@ document.getElementById('zones').addEventListener('dragstart', () => SFX.drop(),
   document.addEventListener('dragend', stop, true);
   document.addEventListener('drop',    stop, true);
 })();
+
+// ============ FEEDBACK ============
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1506345973759217746/IGW4ydKAe72iGtdDVdbYzR1yA8UOz8jgUwd-4vAS41U_jr9I3PXyXnbSkfSvNi0TDaRa';
+document.getElementById('btnFeedback').onclick = async () => {
+  const msgEl = document.getElementById('fbMsg');
+  const status = document.getElementById('fbStatus');
+  const msg = msgEl.value.trim();
+  if(!msg){ status.textContent = T('fbEmpty'); return; }
+  if(msg.length > 1800){ status.textContent = T('fbTooLong'); return; }
+  if(!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.indexOf('http') !== 0){
+    status.textContent = T('fbFail', 'no webhook configured');
+    return;
+  }
+  status.textContent = T('fbSending');
+  try {
+    const r = await fetch(DISCORD_WEBHOOK_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        content: `**Feedback inbound, <@464894225788436522>**:\n${msg}`,
+        username: 'Pofu',
+      }),
+    });
+    if(r.ok){ status.textContent = T('fbSent'); msgEl.value = ''; }
+    else   { status.textContent = T('fbFail', r.status); }
+  } catch(e){ status.textContent = T('fbFail', e.message || e); }
+};
 
 // ============ INIT ============
 addCmpRow();
